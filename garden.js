@@ -3,6 +3,7 @@
 "use strict";
 const M=window.GardenModel, el=id=>document.getElementById(id), KEY="the-garden-we-grew-prototype-v1";
 let copy,state=M.fresh(),noticeTimer,storageOK=true;
+let editMode=false,selectedFlower=null,drag=null,undoStack=[],redoStack=[];
 function tell(message){el("notice").textContent=message;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>{el("notice").textContent="";},3500);}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch{storageOK=false;tell("This browser could not save the garden. Keep this tab open.");}}
 function loadCopy(){
@@ -31,7 +32,83 @@ function growPot(art,plant){
  }
  requestAnimationFrame(frame);
 }
+// History is intentionally session-local and contains no plant progress.
+function record(before){
+ if(JSON.stringify(before)===JSON.stringify(M.bouquetSnapshot(state)))return false;
+ undoStack.push(before);if(undoStack.length>30)undoStack.shift();redoStack=[];return true;
+}
+function bouquetChange(fn,focus){
+ const before=M.bouquetSnapshot(state);if(fn()===false||!record(before))return false;
+ persist();render(focus);return true;
+}
+function historyStep(from,to){
+ if(!from.length)return;cancelDrag();to.push(M.bouquetSnapshot(state));M.restoreBouquet(state,from.pop());persist();render();
+}
+function selectedItem(){return M.bouquetLayout(state.bouquet,state.placements).find(x=>x.id===selectedFlower);}
+function svgPoint(svg,e){
+ try{const matrix=svg.getScreenCTM();if(!matrix)return null;const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const v=p.matrixTransform(matrix.inverse());return Number.isFinite(v.x)&&Number.isFinite(v.y)?v:null;}catch{return null;}
+}
+function addHandles(){
+ const art=el("bouquetArt"),svg=art.querySelector("svg");
+ art.classList.toggle("position-mode",editMode);
+ if(!svg||!editMode)return;
+ const ns="http://www.w3.org/2000/svg",layer=document.createElementNS(ns,"g");layer.setAttribute("class","position-handles");layer.setAttribute("aria-hidden","true");
+ for(const item of M.bouquetLayout(state.bouquet,state.placements)){
+  const pt=M.flowerHead(state.plants[item.id],item),g=document.createElementNS(ns,"g");
+  g.dataset.handle=item.id;g.setAttribute("class","flower-handle"+(item.id===selectedFlower?" selected":""));g.setAttribute("transform","translate("+pt.x+" "+pt.y+")");
+  const hit=document.createElementNS(ns,"circle");hit.setAttribute("r","23");hit.setAttribute("fill","transparent");
+  const ring=document.createElementNS(ns,"circle");ring.setAttribute("r","11");ring.setAttribute("class","handle-ring");
+  const cross=document.createElementNS(ns,"path");cross.setAttribute("d","M-5 0H5M0 -5V5");cross.setAttribute("class","handle-cross");
+  g.append(hit,ring,cross);layer.append(g);
+ }
+ svg.append(layer);
+}
+function renderPositionControls(){
+ if(!state.bouquet.includes(selectedFlower))selectedFlower=state.bouquet[0]||null;
+ if(state.wrapped||!selectedFlower)editMode=false;
+ const select=el("positionFlower");select.replaceChildren();for(const id of state.bouquet){const o=node("option","",copy.flowers[id].name);o.value=id;select.append(o);}select.value=selectedFlower||"";select.disabled=!selectedFlower;
+ const editable=!!selectedFlower&&!state.wrapped;
+ const button=el("editPosition");button.disabled=!editable;button.setAttribute("aria-pressed",String(editMode));button.textContent=editMode?copy.finishPosition:copy.editPosition;
+ el("positionHint").textContent=!selectedFlower?copy.positionEmpty:state.wrapped?copy.positionWrapped:editMode?copy.positionActive:copy.positionHint;
+ const item=selectedItem();for(const [id,disabled] of [["tiltLeft",item?.angle<=-40],["tiltRight",item?.angle>=40],["raiseFlower",item?.scale>=1.68],["lowerFlower",item?.scale<=1.10],["resetFlower",!state.placements[selectedFlower]],["autoArrange",!Object.keys(state.placements).length]])el(id).disabled=!editable||disabled;
+ el("undoBouquet").disabled=!undoStack.length;el("redoBouquet").disabled=!redoStack.length;
+}
+function updatePreview(){
+ const art=el("bouquetArt");art.classList.remove("wrap-sequence");art.innerHTML=M.bouquetSvg(state,copy.brand);renderPositionControls();addHandles();
+}
+function cancelDrag(restore=false){
+ if(!drag)return;const active=drag;drag=null;
+ const art=el("bouquetArt");try{if(art.hasPointerCapture(active.pointerId))art.releasePointerCapture(active.pointerId);}catch{}
+ if(restore)updatePreview();
+}
+function beginDrag(e){
+ if(!editMode||state.wrapped||drag||e.isPrimary===false||(e.pointerType==="mouse"&&e.button!==0))return;
+ const art=el("bouquetArt"),handle=e.target.closest("[data-handle]");if(!handle)return;
+ const id=handle.dataset.handle,item=M.bouquetLayout(state.bouquet,state.placements).find(x=>x.id===id),svg=art.querySelector("svg");
+ if(!item||!svg)return;const start=svgPoint(svg,e);if(!start)return;
+ const head=M.flowerHead(state.plants[id],item),group=svg.querySelector('[data-flower="'+id+'"]');if(!group)return;
+ e.preventDefault();selectedFlower=id;el("positionFlower").value=id;
+ for(const x of svg.querySelectorAll("[data-handle]"))x.classList.toggle("selected",x===handle);
+ drag={id,pointerId:e.pointerId,item,head,start,svg,group,handle,next:null};try{art.setPointerCapture(e.pointerId);}catch{drag=null;updatePreview();}
+}
+function moveDrag(e){
+ if(!drag||e.pointerId!==drag.pointerId)return;const p=svgPoint(drag.svg,e);if(!p)return;
+ e.preventDefault();const dx=p.x-drag.start.x,dy=p.y-drag.start.y;
+ if(!drag.next&&Math.hypot(dx,dy)<2)return;
+ const next=M.placementFromHead(state.plants[drag.id],drag.item,drag.head.x+dx,drag.head.y+dy);if(!next)return;
+ drag.next=next;const item={...drag.item,...next},pt=M.flowerHead(state.plants[drag.id],item);
+ drag.group.setAttribute("transform",M.placementTransform(item));drag.handle.setAttribute("transform","translate("+pt.x+" "+pt.y+")");
+}
+function finishDrag(e,commit){
+ if(!drag||e.pointerId!==drag.pointerId)return;const active=drag;cancelDrag();
+ if(commit&&active.next&&bouquetChange(()=>M.setPlacement(state,active.id,active.next)))return;
+ updatePreview();
+}
+function nudge(angle,scale){
+ const item=selectedItem();if(!item||state.wrapped)return;bouquetChange(()=>M.setPlacement(state,item.id,{angle:item.angle+angle,scale:item.scale+scale}));
+}
 function render(focus){
+ cancelDrag();
  const root=el("plants");root.replaceChildren();let grown=0;
  for(const id of M.species){
   const p=state.plants[id], c=copy.flowers[id], stage=p?.stage??-1; if(stage===4)grown++;
@@ -44,7 +121,7 @@ function render(focus){
  }
  if(window.GardenScenes)window.GardenScenes.update(state,copy,grown);
  el("progressText").textContent=grown+" of "+M.species.length+" flowers in bloom";el("progress").max=M.species.length;el("progress").value=grown;
- const bouquetArt=el("bouquetArt");bouquetArt.classList.remove("wrap-sequence");bouquetArt.innerHTML=M.bouquetSvg(state,copy.brand);
+ const bouquetArt=el("bouquetArt");updatePreview();
  if(focus?.action==="wrap"&&state.wrapped){void bouquetArt.offsetWidth;bouquetArt.classList.add("wrap-sequence");}
  const tray=el("flowerTray");tray.replaceChildren();
  for(const id of M.species){const p=state.plants[id],selected=state.bouquet.includes(id),ready=p?.stage===4;
@@ -62,13 +139,13 @@ function render(focus){
  el("wrap").value=state.wrap;el("ribbon").value=state.ribbon;el("greenery").checked=state.greenery;el("png").disabled=el("svg").disabled=!state.bouquet.length;
  if(focus){const list=[...document.querySelectorAll("button[data-id]")],target=list.find(b=>b.dataset.id===focus.id&&b.dataset.action===focus.action&&!b.disabled)||list.find(b=>b.dataset.id===focus.id&&!b.disabled);target?.focus({preventScroll:true});}
 }
-function act(e){const b=e.target.closest("button[data-action]");if(!b||b.disabled)return;const {id,action}=b.dataset;let changed=false;
+function act(e){const b=e.target.closest("button[data-action]");if(!b||b.disabled)return;const {id,action}=b.dataset;let changed=false;const before=M.bouquetSnapshot(state);
  if(action==="plant")changed=M.plant(state,id);
  if(action==="water")changed=M.water(state,id);
  if(action==="add")changed=M.add(state,id);
  if(action==="remove")changed=M.remove(state,id);
  if(action==="up"||action==="down")changed=M.move(state,id,action==="up"?-1:1);
- if(changed){const fromTray=!!b.closest("#flowerTray");persist();render(fromTray?null:{id,action});if(fromTray){const next=[...el("flowerTray").querySelectorAll("button")].find(x=>!x.disabled);(next||el("wrapBouquet")).focus({preventScroll:true});}if(storageOK){if(action==="water")tell(copy.flowers[id].name+": "+copy.stages[state.plants[id].stage]);else if(action==="add")tell(copy.flowers[id].name+" added to your bouquet.");}}
+ if(changed){if(["add","remove","up","down"].includes(action))record(before);const fromTray=!!b.closest("#flowerTray");persist();render(fromTray?null:{id,action});if(fromTray){const next=[...el("flowerTray").querySelectorAll("button")].find(x=>!x.disabled);(next||el("wrapBouquet")).focus({preventScroll:true});}if(storageOK){if(action==="water")tell(copy.flowers[id].name+": "+copy.stages[state.plants[id].stage]);else if(action==="add")tell(copy.flowers[id].name+" added to your bouquet.");}}
 }
 function download(blob,filename){const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
 function svgBlob(){return new Blob([M.bouquetSvg(state,copy.brand)],{type:"image/svg+xml;charset=utf-8"});}
@@ -86,11 +163,18 @@ async function start(){
  const hero=el("heroFlowers");hero.innerHTML=M.species.map((id,i)=>'<g transform="translate('+[54,105,139,232,270,311][i]+' '+[292,283,282,281,290,295][i]+') scale('+[.68,.58,.46,.48,.64,.72][i]+')">'+M.flowerMarkup({id,seed:M.seedFor(id),stage:4})+'</g>').join("");
  const room=el("workroomFlowers");room.innerHTML=M.species.map((id,i)=>'<g transform="translate('+[74,145,214,526,595,667][i]+' 159) scale(.66)">'+M.flowerMarkup({id,seed:M.seedFor(id),stage:4})+'</g>').join("");
  el("plants").addEventListener("click",act);el("arrangement").addEventListener("click",act);el("flowerTray").addEventListener("click",act);
- for(const key of ["paperStyle","ribbonStyle"]){el(key).addEventListener("change",()=>{state[key]=el(key).value;persist();render();});}
- el("wrapBouquet").addEventListener("click",()=>{if(M.setWrapped(state,!state.wrapped)){persist();render({action:"wrap"});}});
- el("wrap").addEventListener("change",()=>{state.wrap=el("wrap").value;persist();render();});el("ribbon").addEventListener("change",()=>{state.ribbon=el("ribbon").value;persist();render();});el("greenery").addEventListener("change",()=>{state.greenery=el("greenery").checked;persist();render();});
+ for(const key of ["paperStyle","ribbonStyle","wrap","ribbon","greenery"]){el(key).addEventListener("change",()=>bouquetChange(()=>{state[key]=key==="greenery"?el(key).checked:el(key).value;}));}
+ el("wrapBouquet").addEventListener("click",()=>bouquetChange(()=>M.setWrapped(state,!state.wrapped),{action:"wrap"}));
+ el("editPosition").addEventListener("click",()=>{if(state.wrapped||!state.bouquet.length)return;cancelDrag();editMode=!editMode;updatePreview();});
+ el("positionFlower").addEventListener("change",()=>{cancelDrag();selectedFlower=el("positionFlower").value;updatePreview();});
+ for(const [id,angle,scale] of [["tiltLeft",-5,0],["tiltRight",5,0],["raiseFlower",0,.08],["lowerFlower",0,-.08]])el(id).addEventListener("click",()=>nudge(angle,scale));
+ el("resetFlower").addEventListener("click",()=>bouquetChange(()=>M.clearPlacement(state,selectedFlower)));
+ el("autoArrange").addEventListener("click",()=>bouquetChange(()=>M.autoArrange(state)));
+ el("undoBouquet").addEventListener("click",()=>historyStep(undoStack,redoStack));el("redoBouquet").addEventListener("click",()=>historyStep(redoStack,undoStack));
+ const art=el("bouquetArt");art.addEventListener("pointerdown",beginDrag);art.addEventListener("pointermove",moveDrag);art.addEventListener("pointerup",e=>finishDrag(e,true));art.addEventListener("pointercancel",e=>finishDrag(e,false));art.addEventListener("lostpointercapture",e=>finishDrag(e,false));
+ window.addEventListener("blur",()=>cancelDrag(true));document.addEventListener("visibilitychange",()=>{if(document.hidden)cancelDrag(true);});
  el("png").addEventListener("click",savePng);el("svg").addEventListener("click",saveSvg);
- el("reset").addEventListener("click",()=>{if(!confirm(copy.resetConfirm))return;state=M.fresh();persist();render();tell("A new garden is ready.");});
+ el("reset").addEventListener("click",()=>{if(!confirm(copy.resetConfirm))return;cancelDrag();undoStack=[];redoStack=[];editMode=false;selectedFlower=null;state=M.fresh();persist();render();tell("A new garden is ready.");});
  if(window.GardenScenes)window.GardenScenes.init(copy);
  render();el("loading").hidden=true;el("app").hidden=false;if(!storageOK)tell("Local storage is unavailable or could not be read.");
  }catch(err){el("loading").textContent="The garden text could not be loaded. Please refresh this page. If you edited garden-text.js, check its quotation marks and commas.";console.error(err);}

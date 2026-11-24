@@ -1,4 +1,4 @@
-# Third-party source and asset register — Prototype 06
+# Third-party source and asset register — Prototype 07
 
 Prototype 01 was original code. Prototype 02 selectively adapts yZhanWeather's petal/firefly CSS motion from src/conf.js at commit 9f3eb3d41910740319813c4f87011880ea1c5978 (MIT; Copyright (c) 2023 馒头饭). Retained exact upstream notice at vendor/yZhanWeather/LICENSE. Changes: scene-local clipping, reduced particle count, relative placement and timing, intersection/visibility pause, reduced-motion suppression. No original yZhanWeather JS runtime, third-party images or fonts are bundled. System fonts and native SVG/Canvas remain.
 
@@ -9,6 +9,8 @@ Prototype 04 uses original SVG greenhouse scenery, flower tray, tiered fan arran
 Prototype 05 selectively ports Garten drawGrass, drawFern and drawBush geometry from src/plants/renderers.ts at 1bc6720bf249c94957c3c3afd1f787b163dd601d to scene-local SVG paths in garden-landscape.js (MIT, copyright (c) 2024; vendor/Garten/LICENSE). Modified seeded randomness, palette, frond structure, density, bounds, and growth input. Organic Flow src/components/SVGFilters.tsx at 4f053d63fc26fe3faee5734b1987beb01b9330ed contributes the turbulence/displacement/blur watercolor approach (MIT, copyright (c) 2026 pxnz3r; vendor/OrganicFlow/LICENSE). Adapted as two small static scene-only SVG wash filters in index.html; reduced displacement and blur, no React/Canvas app. yZhanWeather butterfly two-wing technique also adapted; existing exact license retained. No full upstream engine/runtime or external art.
 
 Prototype 06 uses original bench/envelope/letter illustrations and native CSS transitions with a guarded finite state controller. No additional upstream code or assets. Anime.js remains a candidate for advanced dragging; a separate runtime is unnecessary for this finite envelope sequence. Existing four source adaptations and notices retained.
+
+Prototype 07 compares Anime.js 4.5.0 draggable module and Interact.js drag/snap/inertia capabilities with the required single-pointer, stem-anchored SVG edit. Native Pointer Events, SVG screen-matrix conversion, bounded polar geometry and local history are selected for this implementation. No source copied or additional runtime required. R14/R15 remain reserves if native device tests reveal gaps; all existing integrations retained.
 
 | Candidate | Role in later evaluation |
 |---|---|
