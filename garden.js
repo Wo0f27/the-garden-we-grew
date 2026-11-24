@@ -12,16 +12,35 @@ function loadCopy(){
 }
 function node(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
 function button(label,action,id,cls=""){const b=node("button",cls,label);b.type="button";b.dataset.action=action;b.dataset.id=id;return b;}
+// Animate only the changed pot. State is committed at the start of each watering
+// action; interrupted or reduced-motion animations cannot lose progress.
+function growPot(art,plant){
+ const end=plant.stage;
+ if(end<1||window.matchMedia("(prefers-reduced-motion: reduce)").matches||document.hidden||typeof requestAnimationFrame!=="function")return;
+ const duration=end===4?950:620;
+ const initial=end-1;
+ let first=null,last=-Infinity;
+ art.innerHTML=M.potSvg({...plant,stage:initial});
+ function frame(now){
+  if(!art.isConnected)return;
+  if(first===null)first=now;
+  const t=Math.min(1,(now-first)/duration);
+  if(document.hidden||window.matchMedia("(prefers-reduced-motion: reduce)").matches||t===1){art.innerHTML=M.potSvg(plant);return;}
+  if(now-last>=32){const ease=t*t*(3-2*t);art.innerHTML=M.potSvg({...plant,stage:initial+ease});last=now;}
+  requestAnimationFrame(frame);
+ }
+ requestAnimationFrame(frame);
+}
 function render(focus){
  const root=el("plants");root.replaceChildren();let grown=0;
  for(const id of M.species){
   const p=state.plants[id], c=copy.flowers[id], stage=p?.stage??-1; if(stage===4)grown++;
-  const card=node("article","plant-card");const art=node("div","plant-art");art.innerHTML=M.potSvg(p);if(focus?.id===id&&(focus.action==="water"||focus.action==="plant"))art.classList.add("growth-reveal");card.append(art,node("h3","",c.name),node("div","species-meaning",c.meaning),node("div","stage",stage<0?"Ready to plant":copy.stages[stage]));
+  const card=node("article","plant-card");const art=node("div","plant-art");art.innerHTML=M.potSvg(p);if(focus?.id===id&&focus.action==="plant")art.classList.add("growth-reveal");card.append(art,node("h3","",c.name),node("div","species-meaning",c.meaning),node("div","stage",stage<0?"Ready to plant":copy.stages[stage]));
   const meter=node("div","stage-meter");meter.setAttribute("aria-hidden","true");for(let i=0;i<5;i++)meter.append(node("i",i<=stage?"filled":""));card.append(meter);
   if(stage===4)card.append(node("p","plant-message",c.message));
   const action=stage<0?"plant":stage<4?"water":"add", added=state.bouquet.includes(id);
   const b=button(action==="plant"?copy.plant:action==="water"?copy.water:added?copy.added:copy.add,action,id,"action");
-  b.setAttribute("aria-label",b.textContent+" — "+c.name);b.disabled=action==="add"&&added;card.append(b);root.append(card);
+  b.setAttribute("aria-label",b.textContent+" — "+c.name);b.disabled=action==="add"&&added;card.append(b);root.append(card);if(focus?.id===id&&focus.action==="water"&&p)growPot(art,p);
  }
  if(window.GardenScenes)window.GardenScenes.update(state,copy,grown);
  el("progressText").textContent=grown+" of "+M.species.length+" flowers in bloom";el("progress").max=M.species.length;el("progress").value=grown;
