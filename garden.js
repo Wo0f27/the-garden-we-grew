@@ -44,7 +44,17 @@ function render(focus){
  }
  if(window.GardenScenes)window.GardenScenes.update(state,copy,grown);
  el("progressText").textContent=grown+" of "+M.species.length+" flowers in bloom";el("progress").max=M.species.length;el("progress").value=grown;
- el("bouquetArt").innerHTML=M.bouquetSvg(state,copy.brand);
+ const bouquetArt=el("bouquetArt");bouquetArt.classList.remove("wrap-sequence");bouquetArt.innerHTML=M.bouquetSvg(state,copy.brand);
+ if(focus?.action==="wrap"&&state.wrapped){void bouquetArt.offsetWidth;bouquetArt.classList.add("wrap-sequence");}
+ const tray=el("flowerTray");tray.replaceChildren();
+ for(const id of M.species){const p=state.plants[id],selected=state.bouquet.includes(id),ready=p?.stage===4;
+  const b=button("", "add",id,"tray-flower");b.disabled=!ready||selected;
+  const preview=node("div","tray-art");preview.innerHTML=M.potSvg(p);b.append(preview,node("span","tray-name",copy.flowers[id].name),node("small","tray-state",selected?copy.traySelected:ready?copy.trayAdd:copy.trayGrowing));
+  b.setAttribute("aria-label",copy.flowers[id].name+" — "+(selected?copy.traySelected:ready?copy.trayAdd:copy.trayGrowing));tray.append(b);
+ }
+ el("paperStyle").value=state.paperStyle;el("ribbonStyle").value=state.ribbonStyle;
+ const wrapButton=el("wrapBouquet");wrapButton.disabled=!state.bouquet.length;wrapButton.textContent=state.wrapped?copy.unwrapButton:copy.wrapButton;wrapButton.setAttribute("aria-pressed",String(state.wrapped));
+ el("wrapStatus").textContent=!state.bouquet.length?copy.wrapEmpty:state.wrapped?copy.wrapReady:copy.wrapWaiting;
  el("bouquetCount").textContent=state.bouquet.length?state.bouquet.length+" flower"+(state.bouquet.length===1?"":"s")+" in your bouquet":copy.emptyBouquet;
  const rows=el("arrangement");rows.replaceChildren();
  if(!state.bouquet.length)rows.append(node("p","quiet",copy.emptyArrangement));
@@ -58,7 +68,7 @@ function act(e){const b=e.target.closest("button[data-action]");if(!b||b.disable
  if(action==="add")changed=M.add(state,id);
  if(action==="remove")changed=M.remove(state,id);
  if(action==="up"||action==="down")changed=M.move(state,id,action==="up"?-1:1);
- if(changed){persist();render({id,action});if(storageOK){if(action==="water")tell(copy.flowers[id].name+": "+copy.stages[state.plants[id].stage]);else if(action==="add")tell(copy.flowers[id].name+" added to your bouquet.");}}
+ if(changed){const fromTray=!!b.closest("#flowerTray");persist();render(fromTray?null:{id,action});if(fromTray){const next=[...el("flowerTray").querySelectorAll("button")].find(x=>!x.disabled);(next||el("wrapBouquet")).focus({preventScroll:true});}if(storageOK){if(action==="water")tell(copy.flowers[id].name+": "+copy.stages[state.plants[id].stage]);else if(action==="add")tell(copy.flowers[id].name+" added to your bouquet.");}}
 }
 function download(blob,filename){const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
 function svgBlob(){return new Blob([M.bouquetSvg(state,copy.brand)],{type:"image/svg+xml;charset=utf-8"});}
@@ -72,9 +82,12 @@ async function start(){
  try{copy=await loadCopy();for(const id of M.species)if(!copy.flowers?.[id]||typeof copy.flowers[id].name!=="string")throw Error("Incomplete flower text");
  document.title=copy.brand;document.querySelectorAll("[data-copy]").forEach(n=>{const v=copy[n.dataset.copy];if(typeof v==="string")n.textContent=v;});
  try{state=M.normalize(JSON.parse(localStorage.getItem(KEY)||"null"));}catch{storageOK=false;}
- fillOptions("wrap",copy.wraps);fillOptions("ribbon",copy.ribbons);
+ fillOptions("wrap",copy.wraps);fillOptions("ribbon",copy.ribbons);fillOptions("paperStyle",copy.paperStyles);fillOptions("ribbonStyle",copy.ribbonStyles);
  const hero=el("heroFlowers");hero.innerHTML=M.species.map((id,i)=>'<g transform="translate('+[54,105,139,232,270,311][i]+' '+[292,283,282,281,290,295][i]+') scale('+[.68,.58,.46,.48,.64,.72][i]+')">'+M.flowerMarkup({id,seed:M.seedFor(id),stage:4})+'</g>').join("");
- el("plants").addEventListener("click",act);el("arrangement").addEventListener("click",act);
+ const room=el("workroomFlowers");room.innerHTML=M.species.map((id,i)=>'<g transform="translate('+[74,145,214,526,595,667][i]+' 159) scale(.66)">'+M.flowerMarkup({id,seed:M.seedFor(id),stage:4})+'</g>').join("");
+ el("plants").addEventListener("click",act);el("arrangement").addEventListener("click",act);el("flowerTray").addEventListener("click",act);
+ for(const key of ["paperStyle","ribbonStyle"]){el(key).addEventListener("change",()=>{state[key]=el(key).value;persist();render();});}
+ el("wrapBouquet").addEventListener("click",()=>{if(M.setWrapped(state,!state.wrapped)){persist();render({action:"wrap"});}});
  el("wrap").addEventListener("change",()=>{state.wrap=el("wrap").value;persist();render();});el("ribbon").addEventListener("change",()=>{state.ribbon=el("ribbon").value;persist();render();});el("greenery").addEventListener("change",()=>{state.greenery=el("greenery").checked;persist();render();});
  el("png").addEventListener("click",savePng);el("svg").addEventListener("click",saveSvg);
  el("reset").addEventListener("click",()=>{if(!confirm(copy.resetConfirm))return;state=M.fresh();persist();render();tell("A new garden is ready.");});

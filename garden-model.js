@@ -4,23 +4,24 @@
 const species=["rose","peony","tulip","daisy","sunflower","gypsophila"];
 const colors={rose:["#d998a5","#b7657b","#f0bdc4"],peony:["#e4aeb9","#c48198","#f7d0d7"],tulip:["#d88c9c","#a95876","#f3b5bc"],daisy:["#fffdf1","#d8d6bc","#fffef7"],sunflower:["#e5bd50","#c98e32","#f6d780"],gypsophila:["#fff9e9","#ddcfbc","#ffffff"]};
 const wraps={ivory:"#e9d8bc",blush:"#e3b6bd",sage:"#aebda4"},ribbons={rose:"#b16c83",gold:"#c2a168",forest:"#55775c"};
+const paperStyles=["plain","botanical","stripe"],ribbonStyles=["bow","long","knot"];
 const own=(obj,key)=>Object.prototype.hasOwnProperty.call(obj,key);
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const num=n=>Number(n.toFixed(3));
 function seedFor(id){let x=2166136261;for(const c of id){x=Math.imul(x^c.charCodeAt(0),16777619);}return x>>>0;}
 function rng(seed){let t=seed>>>0;return ()=>{t=(t+0x6D2B79F5)>>>0;let x=Math.imul(t^(t>>>15),t|1);x^=x+Math.imul(x^(x>>>7),x|61);return ((x^(x>>>14))>>>0)/4294967296;};}
-function fresh(){return {version:1,plants:{},bouquet:[],wrap:"ivory",ribbon:"rose",greenery:true};}
+function fresh(){return {version:1,plants:{},bouquet:[],wrap:"ivory",ribbon:"rose",greenery:true,paperStyle:"plain",ribbonStyle:"bow",wrapped:false};}
 function normalize(input){
  const s=fresh();if(!input||typeof input!=="object"||input.version!==1)return s;
  for(const id of species){const p=input.plants&&input.plants[id];if(p&&Number.isInteger(p.stage)&&p.stage>=0&&p.stage<=4)s.plants[id]={id,stage:p.stage,seed:seedFor(id)};}
  if(Array.isArray(input.bouquet))s.bouquet=[...new Set(input.bouquet.filter(id=>species.includes(id)&&s.plants[id]?.stage===4))];
- if(own(wraps,input.wrap))s.wrap=input.wrap;if(own(ribbons,input.ribbon))s.ribbon=input.ribbon;s.greenery=input.greenery!==false;return s;
+ if(own(wraps,input.wrap))s.wrap=input.wrap;if(own(ribbons,input.ribbon))s.ribbon=input.ribbon;s.greenery=input.greenery!==false;if(paperStyles.includes(input.paperStyle))s.paperStyle=input.paperStyle;if(ribbonStyles.includes(input.ribbonStyle))s.ribbonStyle=input.ribbonStyle;s.wrapped=s.bouquet.length>0&&(typeof input.wrapped==="boolean"?input.wrapped:true);return s;
 }
 function plant(s,id){if(!species.includes(id)||s.plants[id])return false;s.plants[id]={id,stage:0,seed:seedFor(id)};return true;}
 function water(s,id){const p=s.plants[id];if(!p||p.stage>=4)return false;p.stage++;return true;}
-function add(s,id){if(s.plants[id]?.stage!==4||s.bouquet.includes(id))return false;s.bouquet.push(id);return true;}
-function remove(s,id){const i=s.bouquet.indexOf(id);if(i<0)return false;s.bouquet.splice(i,1);return true;}
-function move(s,id,delta){if(delta!==1&&delta!==-1)return false;const i=s.bouquet.indexOf(id),j=i+delta;if(i<0||j<0||j>=s.bouquet.length)return false;[s.bouquet[i],s.bouquet[j]]=[s.bouquet[j],s.bouquet[i]];return true;}
+function add(s,id){if(s.plants[id]?.stage!==4||s.bouquet.includes(id))return false;s.bouquet.push(id);s.wrapped=false;return true;}
+function remove(s,id){const i=s.bouquet.indexOf(id);if(i<0)return false;s.bouquet.splice(i,1);s.wrapped=false;return true;}
+function move(s,id,delta){if(delta!==1&&delta!==-1)return false;const i=s.bouquet.indexOf(id),j=i+delta;if(i<0||j<0||j>=s.bouquet.length)return false;[s.bouquet[i],s.bouquet[j]]=[s.bouquet[j],s.bouquet[i]];s.wrapped=false;return true;}
 function escape(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&apos;"}[c]));}
 function leaf(x,y,side,size){return '<path d="M'+x+' '+y+' q'+(side*size)+' '+(-size*.95)+' '+(side*size*1.28)+' '+(-size*.7)+' q'+(-side*size*.1)+' '+size*.72+' '+(-side*size*1.28)+' '+size*.7+'" fill="#73916f" stroke="#547553" stroke-width=".65"/><path d="M'+x+' '+y+' l'+(side*size*.96)+' '+(-size*.58)+'" stroke="#d4dfb8" stroke-width=".65" opacity=".6"/>';}
 /* petalPath and smoothClosed adapted from BLOOM° index.html at f052a78915c30ec3a1b22eab90fb508795bcadf0.
@@ -165,13 +166,31 @@ function potSvg(p){
  const art=p?flowerMarkup(p):'<ellipse cx="0" cy="0" rx="2" ry="1" fill="#8d7657"/>';
  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -22 180 227" aria-hidden="true"><ellipse cx="90" cy="190" rx="46" ry="7" fill="#b8a88d" opacity=".23"/><path d="M52 148H128L119 185Q90 194 61 185Z" fill="#b77f64" stroke="#98674f"/><path d="M61 155L68 181" stroke="#e2b49a" stroke-width="5" opacity=".5"/><rect x="47" y="143" width="86" height="11" rx="3" fill="#c79075" stroke="#a36c55"/><ellipse cx="90" cy="143" rx="38" ry="5" fill="#79614a"/><g transform="translate(90 142)">'+art+'</g></svg>';
 }
-function bouquetSvg(s,title){
- const n=s.bouquet.length;let plants="",extra="";
- if(s.greenery&&n){for(const a of [-48,-34,32,47])extra+='<g transform="translate(200 340) rotate('+a+') scale(1.35)"><path d="M0 0Q-3 -56 0 -115" fill="none" stroke="#6f8967" stroke-width="2"/>'+leaf(0,-40,-1,18)+leaf(0,-65,1,21)+leaf(0,-85,-1,15)+'</g>';}
- s.bouquet.forEach((id,i)=>{const a=n===1?0:(i/(n-1)-.5)*74;const scale=1.53+(i%2)*.12;plants+='<g transform="translate(200 335) rotate('+num(a)+') scale('+num(scale)+')">'+flowerMarkup(s.plants[id])+'</g>';});
- const paper=wraps[s.wrap],ribbon=ribbons[s.ribbon];
- const wrap=n?'<path d="M101 236L199 292L299 236L223 380Q200 393 177 380Z" fill="'+paper+'" stroke="#aa9279" stroke-width="1.1"/><path d="M101 236L199 292L177 380Z" fill="#fffaf0" opacity=".32"/><path d="M299 236L199 292L223 380Z" fill="#695a45" opacity=".09"/><path d="M170 332Q200 343 230 332L226 345Q200 354 174 345Z" fill="'+ribbon+'"/><path d="M199 340Q147 307 153 333Q157 353 199 340Q248 308 247 332Q243 355 199 340" fill="'+ribbon+'" stroke="#79565a" stroke-width="1"/><path d="M198 341L181 368L193 362L202 344L216 368L220 357L205 341Z" fill="'+ribbon+'"/><ellipse cx="201" cy="341" rx="7" ry="6" fill="'+ribbon+'"/>':'<path d="M133 237Q200 260 267 237L219 376Q200 385 181 376Z" fill="#ede0cb" stroke="#c3b199" stroke-dasharray="5 4"/><path d="M177 338Q200 345 223 338" stroke="#bfa184" stroke-width="5" fill="none"/>';
- return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 440" width="400" height="440" role="img" aria-label="'+escape(title)+'"><rect width="400" height="440" rx="12" fill="#fffaf0"/><path d="M24 406V137a176 112 0 0 1 352 0v269Z" fill="none" stroke="#c5a371" stroke-width="1.2"/><path d="M32 398V137a168 104 0 0 1 336 0v261Z" fill="none" stroke="#e2d3b6" stroke-width=".75"/>'+extra+plants+wrap+'<text x="200" y="420" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#54705a">'+escape(title)+'</text></svg>';
+function setWrapped(s,value){if(!s.bouquet.length||typeof value!=="boolean"||s.wrapped===value)return false;s.wrapped=value;return true;}
+function bouquetLayout(ids){
+ const n=ids.length;
+ // Asymmetrical, tiered fan: preserve sequence from left to right, vary height.
+ return ids.map((id,i)=>{const u=n===1?0:2*i/(n-1)-1;return {id,angle:num(u*34),x:num(200+u*13),y:332,scale:num(1.43+(1-Math.abs(u))*.20+(i%2)*.09)};});
 }
-root.GardenModel={species,wraps,ribbons,fresh,normalize,plant,water,add,remove,move,seedFor,flowerMarkup,potSvg,bouquetSvg};
+function bouquetSvg(s,title){
+ const n=s.bouquet.length,wrapped=n>0&&s.wrapped;let plants="",extra="";
+ const paper=wraps[s.wrap]||wraps.ivory,ribbon=ribbons[s.ribbon]||ribbons.rose;
+ const pattern=s.paperStyle==="botanical"?'<pattern id="paperPattern" width="23" height="28" patternUnits="userSpaceOnUse"><path d="M5 26Q14 15 17 2M10 19Q2 17 3 10Q11 10 10 19M14 11Q21 11 21 5Q14 4 14 11" fill="none" stroke="#756a55" stroke-width=".9" opacity=".27"/></pattern>':s.paperStyle==="stripe"?'<pattern id="paperPattern" width="13" height="13" patternUnits="userSpaceOnUse" patternTransform="rotate(23)"><path d="M0 0V13" stroke="#fffaf1" stroke-width="3" opacity=".5"/></pattern>':"";
+ const defs='<defs><linearGradient id="paperShade" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fffaf0" stop-opacity=".55"/><stop offset=".48" stop-color="#fffaf0" stop-opacity=".06"/><stop offset="1" stop-color="#6e5c44" stop-opacity=".22"/></linearGradient><linearGradient id="ribbonShine" x2="0" y2="1"><stop stop-color="#fff8e8" stop-opacity=".45"/><stop offset="1" stop-color="#493c37" stop-opacity=".18"/></linearGradient>'+pattern+'</defs>';
+ const backD="M94 246L55 180Q109 192 158 216L200 184L242 216Q291 192 345 180L306 246L220 387H180Z";
+ const leftD="M74 210Q133 229 202 299L183 388L151 355Z",rightD="M326 210Q267 229 198 299L217 388L249 355Z";
+ const paperShape=(d,fill)=>'<path d="'+d+'" fill="'+fill+'" stroke="#ad9579" stroke-width="1.1" stroke-linejoin="round"/><path d="'+d+'" fill="url(#paperShade)"/>'+ (pattern?'<path d="'+d+'" fill="url(#paperPattern)"/>':"");
+ if(s.greenery&&n){for(const a of [-49,-37,33,47])extra+='<g transform="translate(200 338) rotate('+a+') scale(1.37)"><path d="M0 0Q-3 -56 0 -115" fill="none" stroke="#6f8967" stroke-width="2"/>'+leaf(0,-40,-1,18)+leaf(0,-65,1,21)+leaf(0,-85,-1,15)+'</g>';}
+ for(const item of bouquetLayout(s.bouquet)){plants+='<g data-flower="'+item.id+'" transform="translate('+item.x+' '+item.y+') rotate('+item.angle+') scale('+item.scale+')">'+flowerMarkup(s.plants[item.id])+'</g>';}
+ const back=wrapped?'<g class="wrap-back">'+paperShape(backD,paper)+'</g>':"";
+ let front="";
+ if(wrapped){
+ const loops=s.ribbonStyle==="knot"?'M200 340Q177 325 174 337Q176 350 200 340Q223 325 226 337Q224 349 200 340':"M200 340Q146 303 145 331Q148 356 200 340Q254 303 255 331Q252 356 200 340";
+ const tails=s.ribbonStyle==="long"?'M198 342Q182 369 153 401L177 393L183 404Q201 377 204 344Q219 380 242 400L239 384L250 382Q221 356 205 342Z':'M198 342L177 371L191 364L202 345L216 373L222 362L205 342Z';
+ front='<g class="wrap-left">'+paperShape(leftD,paper)+'</g><g class="wrap-right">'+paperShape(rightD,paper)+'</g><g class="wrap-tie"><path d="M169 331Q200 342 231 331L227 345Q200 355 173 345Z" fill="'+ribbon+'"/><path d="'+tails+'" fill="'+ribbon+'" stroke="#79565a" stroke-width=".7"/><path d="'+loops+'" fill="'+ribbon+'" stroke="#79565a" stroke-width="1"/><path d="'+loops+'" fill="url(#ribbonShine)"/><ellipse cx="201" cy="341" rx="8" ry="6" fill="'+ribbon+'" stroke="#79565a" stroke-width=".7"/></g>';
+ }else if(n){front='<path d="M185 330Q200 336 215 330M185 334Q200 340 215 334" stroke="#af946b" stroke-width="2.8" fill="none"/>';}
+ else front='<path d="M133 237Q200 260 267 237L219 376Q200 385 181 376Z" fill="#ede0cb" stroke="#c3b199" stroke-dasharray="5 4"/><path d="M177 338Q200 345 223 338" stroke="#bfa184" stroke-width="5" fill="none"/>';
+ return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 440" width="400" height="440" role="img" aria-label="'+escape(title)+'">'+defs+'<rect width="400" height="440" rx="12" fill="#fffaf0"/><path d="M24 406V137a176 112 0 0 1 352 0v269Z" fill="none" stroke="#c5a371" stroke-width="1.2"/><path d="M32 398V137a168 104 0 0 1 336 0v261Z" fill="none" stroke="#e2d3b6" stroke-width=".75"/>'+back+extra+plants+front+'<text x="200" y="420" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#54705a">'+escape(title)+'</text></svg>';
+}
+root.GardenModel={species,wraps,ribbons,fresh,normalize,plant,water,add,remove,move,seedFor,flowerMarkup,potSvg,bouquetSvg,paperStyles,ribbonStyles,setWrapped,bouquetLayout};
 })(typeof window!=="undefined"?window:globalThis);

@@ -1,8 +1,10 @@
-# Third-party source and asset register — Prototype 03
+# Third-party source and asset register — Prototype 04
 
 Prototype 01 was original code. Prototype 02 selectively adapts yZhanWeather's petal/firefly CSS motion from src/conf.js at commit 9f3eb3d41910740319813c4f87011880ea1c5978 (MIT; Copyright (c) 2023 馒头饭). Retained exact upstream notice at vendor/yZhanWeather/LICENSE. Changes: scene-local clipping, reduced particle count, relative placement and timing, intersection/visibility pause, reduced-motion suppression. No original yZhanWeather JS runtime, third-party images or fonts are bundled. System fonts and native SVG/Canvas remain.
 
 Prototype 03 incorporates BLOOM°'s procedural petal contour and closed Catmull-Rom smoothing helpers from index.html, commit f052a78915c30ec3a1b22eab90fb508795bcadf0. Copyright (c) 2026 Alessio Sabatino, MIT, exact license at vendor/BLOOM/LICENSE. The original helpers are retained within garden-model.js; the project supplies bounded sampling, deterministic seed, species-specific arrangements, original flower palette and stage interpolation. No upstream application, assets, fonts, or runtime imported.
+
+Prototype 04 uses original SVG greenhouse scenery, flower tray, tiered fan arrangement, paper/ribbon designs and CSS wrapping sequence. R08/R09/R21 remain conceptual references (selection, fan placement, wrapping); no source or assets copied. Native CSS suffices for this simple finite sequence; Anime.js remains a candidate for complex timeline/dragging. No new upstream library or asset added.
 
 | Candidate | Role in later evaluation |
 |---|---|
