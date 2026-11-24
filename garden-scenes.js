@@ -4,7 +4,7 @@
 "use strict";
 const M=window.GardenModel,L=window.GardenLandscape,el=id=>document.getElementById(id);
 const reduce=window.matchMedia("(prefers-reduced-motion: reduce)");
-let initialized=false, gateOpen=false, letterOpen=false, gateTimer=0, lastSignature="", copy;
+let initialized=false, gateOpen=false, letterOpen=false, letterOpening=false, letterTimer=0, letterReady=false, gateTimer=0, lastSignature="", copy;
 const base=(id,stage)=>({id,seed:M.seedFor(id),stage});
 function group(x,y,scale,markup){return '<g transform="translate('+x+' '+y+') scale('+scale+')">'+markup+'</g>';}
 function gardenFlowers(target,state,locations){
@@ -35,14 +35,39 @@ function openGate(){
  clearTimeout(gateTimer);gateTimer=setTimeout(()=>{el("gardenPath").focus({preventScroll:true});el("gardenPath").scrollIntoView({behavior:reduce.matches?"instant":"smooth"});},reduce.matches?0:650);
  motion();
 }
+function closeLetter(restoreFocus=false){
+ clearTimeout(letterTimer);letterTimer=0;letterOpening=false;letterOpen=false;
+ const station=el("letterStation"),button=el("openLetter");
+ station.classList.remove("letter-opening","letter-open");
+ button.setAttribute("aria-expanded","false");button.removeAttribute("aria-disabled");
+ el("gardenLetter").hidden=true;el("envelopeLabel").textContent=letterReady?copy.openLetter:copy.letterLocked;
+ if(restoreFocus&&letterReady)button.focus({preventScroll:true});
+}
+function revealLetter(){
+ if(!letterReady||!letterOpening)return;
+ clearTimeout(letterTimer);letterTimer=0;letterOpening=false;letterOpen=true;
+ el("letterStation").classList.remove("letter-opening");el("letterStation").classList.add("letter-open");
+ const button=el("openLetter");button.removeAttribute("aria-disabled");button.setAttribute("aria-expanded","true");
+ el("envelopeLabel").textContent=copy.letterOpened;
+ const paper=el("gardenLetter");paper.hidden=false;paper.focus({preventScroll:true});paper.scrollIntoView({block:"nearest",behavior:reduce.matches?"instant":"smooth"});
+}
+function openLetter(){
+ if(!letterReady||letterOpening)return;
+ if(letterOpen){el("gardenLetter").focus({preventScroll:true});el("gardenLetter").scrollIntoView({block:"nearest",behavior:reduce.matches?"instant":"smooth"});return;}
+ letterOpening=true;el("openLetter").setAttribute("aria-disabled","true");el("envelopeLabel").textContent=copy.letterOpening;
+ el("letterStation").classList.add("letter-opening");
+ if(reduce.matches||document.hidden)revealLetter();else letterTimer=setTimeout(revealLetter,900);
+}
 function init(config){
  if(initialized)return;initialized=true;copy=config;
  el("openGate").addEventListener("click",openGate);
- el("openLetter").addEventListener("click",()=>{if(el("openLetter").disabled)return;letterOpen=!letterOpen;el("openLetter").setAttribute("aria-expanded",String(letterOpen));el("gardenLetter").hidden=!letterOpen;if(letterOpen){el("gardenLetter").focus({preventScroll:true});el("gardenLetter").scrollIntoView({block:"nearest",behavior:reduce.matches?"instant":"smooth"});}});
- if(reduce.addEventListener)reduce.addEventListener("change",motion);
+ el("openLetter").addEventListener("click",openLetter);
+ el("closeLetter").addEventListener("click",()=>closeLetter(true));
+ el("letterBotanical").innerHTML='<svg viewBox="0 0 180 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+group(90,113,.60,M.flowerMarkup(base("rose",4)))+group(57,111,.39,M.flowerMarkup(base("gypsophila",4)))+group(122,112,.43,M.flowerMarkup(base("peony",4)))+'</svg>';
+ if(reduce.addEventListener)reduce.addEventListener("change",()=>{motion();if(reduce.matches&&letterOpening)revealLetter();});
  if("IntersectionObserver" in window){const io=new IntersectionObserver(entries=>entries.forEach(e=>e.target.classList.toggle("scene-visible",e.isIntersecting)),{threshold:.04});for(const scene of document.querySelectorAll(".scene-picture"))io.observe(scene);}
  else for(const scene of document.querySelectorAll(".scene-picture"))scene.classList.add("scene-visible");
- document.addEventListener("visibilitychange",()=>document.body.classList.toggle("motion-paused",document.hidden));
+ document.addEventListener("visibilitychange",()=>{document.body.classList.toggle("motion-paused",document.hidden);if(document.hidden&&letterOpening)revealLetter();});
  el("heroFoliage").innerHTML=L.bush(55,289,22,82)+L.bush(306,290,23,223)+L.fern(48,295,43,317)+L.fern(312,296,46,812);
  el("heroVines").innerHTML=L.vine(66,181,35,119,1,23)+L.vine(294,184,35,121,-1,41);
  el("glassFoliage").innerHTML=L.bush(60,264,28,13)+L.bush(540,264,28,53)+L.fern(95,276,35,79)+L.fern(507,276,35,107);
@@ -60,8 +85,12 @@ function update(state,config,grown){
  gardenFlowers(el("finalPlants"),state,[[38,314,.40],[100,316,.31],[223,315,.29],[416,315,.29],[490,314,.40],[560,315,.48]]);
  drawTree(grown);updateLandscape(grown);}
  el("pathProgress").textContent=grown?config.pathGrown.replace("{count}",grown).replace("{total}",M.species.length):config.pathReady;
- const ready=grown===M.species.length;el("openLetter").disabled=!ready;el("letterStatus").textContent=ready?config.letterReady:config.letterWaiting;
- if(!ready&&letterOpen){letterOpen=false;el("gardenLetter").hidden=true;el("openLetter").setAttribute("aria-expanded","false");}
+ const ready=grown===M.species.length;letterReady=ready;el("openLetter").disabled=!ready;
+ el("letterStation").classList.toggle("letter-ready",ready);el("benchEnvelope").setAttribute("visibility",ready?"visible":"hidden");
+ el("letterStatus").textContent=ready?config.letterReady:config.letterWaiting;
+ el("letterProgress").textContent=config.letterProgress.replace("{count}",grown).replace("{total}",M.species.length);
+ el("finalBloomMeter").innerHTML=M.species.map((id,i)=>'<span class="final-bloom'+(state.plants[id]?.stage===4?' bloomed':'')+'"><svg viewBox="0 0 24 24"><path d="M12 9C3 2 1 13 8 13C1 20 12 24 12 16C19 24 26 14 16 13C23 4 12 2 12 9Z" fill="currentColor"/><circle cx="12" cy="13" r="2.3" fill="#d2ad72"/></svg></span>').join("");
+ if(!ready)closeLetter();else if(!letterOpen&&!letterOpening)el("envelopeLabel").textContent=config.openLetter;
 }
 window.GardenScenes={init,update};
 })();
