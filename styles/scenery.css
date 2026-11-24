@@ -24,3 +24,13 @@
 .growth-reveal svg{animation:unfold .45s ease both;transform-origin:center bottom}
 @media(max-width:750px){.scene{margin-bottom:25px}.scene-picture{border-radius:75px 75px 8px 8px}.scene-heading{margin-bottom:14px}.garden-letter{padding:26px 20px}.scene-caption{gap:9px}}
 @media(prefers-reduced-motion:reduce){.scene-effects{display:none}#gateLeft,#gateRight{transition:none}.garden-letter,#gardenJourney,.growth-reveal svg{animation:none!important}}
+
+/* Prototype 05: limited butterfly effect adapted from yZhanWeather's two-wing
+   CSS approach, pinned revision 9f3eb3d41910740319813c4f87011880ea1c5978. */
+.ambient-butterfly{top:30%;width:22px;height:17px;animation:butterfly-flight var(--duration) ease-in-out var(--delay) infinite alternate;opacity:.78}
+.ambient-butterfly span{position:absolute;top:1px;width:11px;height:15px;background:linear-gradient(135deg,#fff6da,#d6a2b3);border-radius:80% 80% 40% 80%;box-shadow:inset 0 0 0 1px #b48785a0;animation:wing-beat .48s ease-in-out infinite alternate}
+.ambient-butterfly span:first-child{left:0;transform-origin:right center}.ambient-butterfly span:last-child{right:0;transform-origin:left center;border-radius:80% 80% 80% 40%}.ambient-butterfly:after{content:"";position:absolute;left:10px;top:4px;width:2px;height:10px;background:#806a59;border-radius:2px}
+@keyframes wing-beat{from{transform:scaleX(.38)}to{transform:scaleX(1)}}@keyframes butterfly-flight{from{transform:translate(-15px,20px) rotate(-12deg)}to{transform:translate(var(--drift),-35px) rotate(16deg)}}
+.scene-effects .ambient-butterfly span{animation-play-state:paused}.scene-visible .scene-effects .ambient-butterfly span{animation-play-state:running}.motion-paused .scene-effects .ambient-butterfly span{animation-play-state:paused!important}
+@media(max-width:750px){.ambient-butterfly{width:18px;height:14px}.ambient-butterfly span{width:9px;height:12px}.ambient-butterfly:after{left:8px;height:8px}}
+@media(prefers-reduced-motion:reduce){.scene-effects .ambient-butterfly,.scene-effects .ambient-butterfly span{animation:none!important}}
