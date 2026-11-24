@@ -1,6 +1,6 @@
 # The Garden We Grew
 
-Prototype 01 — shared flower growth and bouquet mechanics. The visual direction is provisional, not a finished gift.
+Prototype 02 — interactive garden journey, shared flower growth and bouquet mechanics. The visual direction is provisional, not a finished gift.
 
 ## Open the prototype
 
@@ -24,6 +24,6 @@ Edit only [garden-text.js](garden-text.js) for ordinary writing. Keep object key
 
 Test the complete plant-to-bouquet flow, reload persistence, each flower appearance, touch targets and keyboard controls, PNG and SVG downloads (particularly iOS Safari), narrow viewport layout, reduced motion, and fresh personal text changes. Code-level tests do not establish real-browser compatibility.
 
-The gate, immersive continuous garden path, greenhouse scenery, final flowering-tree scene and personal letter are pending visual development. Optional audio and journal remain unapproved. See the project continuity record for research and source decisions.
+The gate opens to reveal a continuous scrollable journey: progress-responsive garden path, nursery, greenhouse illustration, bouquet builder and bench beneath a tree. The tree blooms as the six flowers are grown, and the final placeholder letter unlocks only when all six reach bloom. Petals and fireflies are limited to their scenes, paused offscreen and when the tab is hidden, and removed for reduced motion. This is a first scenic pass, not finished art or cinematic growth. Free dragging, full wrapping animation, optional audio and journal remain pending or unapproved. See the project continuity record for research and source decisions.
 
-No third-party source or artwork was copied into this baseline. See THIRD_PARTY_LICENSES.md for the retained source selection and prototype boundaries.
+Prototype 02 adapts the MIT-licensed yZhanWeather motion techniques in scoped CSS; no third-party artwork or full runtime bundle is distributed. See THIRD_PARTY_LICENSES.md for the retained source selection and prototype boundaries.

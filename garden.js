@@ -16,13 +16,14 @@ function render(focus){
  const root=el("plants");root.replaceChildren();let grown=0;
  for(const id of M.species){
   const p=state.plants[id], c=copy.flowers[id], stage=p?.stage??-1; if(stage===4)grown++;
-  const card=node("article","plant-card");const art=node("div","plant-art");art.innerHTML=M.potSvg(p);card.append(art,node("h3","",c.name),node("div","species-meaning",c.meaning),node("div","stage",stage<0?"Ready to plant":copy.stages[stage]));
+  const card=node("article","plant-card");const art=node("div","plant-art");art.innerHTML=M.potSvg(p);if(focus?.id===id&&(focus.action==="water"||focus.action==="plant"))art.classList.add("growth-reveal");card.append(art,node("h3","",c.name),node("div","species-meaning",c.meaning),node("div","stage",stage<0?"Ready to plant":copy.stages[stage]));
   const meter=node("div","stage-meter");meter.setAttribute("aria-hidden","true");for(let i=0;i<5;i++)meter.append(node("i",i<=stage?"filled":""));card.append(meter);
   if(stage===4)card.append(node("p","plant-message",c.message));
   const action=stage<0?"plant":stage<4?"water":"add", added=state.bouquet.includes(id);
   const b=button(action==="plant"?copy.plant:action==="water"?copy.water:added?copy.added:copy.add,action,id,"action");
   b.setAttribute("aria-label",b.textContent+" — "+c.name);b.disabled=action==="add"&&added;card.append(b);root.append(card);
  }
+ if(window.GardenScenes)window.GardenScenes.update(state,copy,grown);
  el("progressText").textContent=grown+" of "+M.species.length+" flowers in bloom";el("progress").max=M.species.length;el("progress").value=grown;
  el("bouquetArt").innerHTML=M.bouquetSvg(state,copy.brand);
  el("bouquetCount").textContent=state.bouquet.length?state.bouquet.length+" flower"+(state.bouquet.length===1?"":"s")+" in your bouquet":copy.emptyBouquet;
@@ -58,6 +59,7 @@ async function start(){
  el("wrap").addEventListener("change",()=>{state.wrap=el("wrap").value;persist();render();});el("ribbon").addEventListener("change",()=>{state.ribbon=el("ribbon").value;persist();render();});el("greenery").addEventListener("change",()=>{state.greenery=el("greenery").checked;persist();render();});
  el("png").addEventListener("click",savePng);el("svg").addEventListener("click",saveSvg);
  el("reset").addEventListener("click",()=>{if(!confirm(copy.resetConfirm))return;state=M.fresh();persist();render();tell("A new garden is ready.");});
+ if(window.GardenScenes)window.GardenScenes.init(copy);
  render();el("loading").hidden=true;el("app").hidden=false;if(!storageOK)tell("Local storage is unavailable or could not be read.");
  }catch(err){el("loading").textContent="The garden text could not be loaded. Please refresh this page. If you edited garden-text.js, check its quotation marks and commas.";console.error(err);}
 }

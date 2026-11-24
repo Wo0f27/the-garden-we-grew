@@ -1,0 +1,26 @@
+/* Scene layout and motion: original project styling.
+   Petal/firefly drift adapted from yZhanWeather src/conf.js, MIT.
+   Copyright (c) 2023 馒头饭. Full notice: vendor/yZhanWeather/LICENSE. */
+#gateLeft,#gateRight{transform-box:fill-box;transition:transform .78s cubic-bezier(.25,.75,.24,1),opacity .7s ease;transform-origin:center}
+.gate-open #gateLeft{transform:translateX(-18px) scaleX(.18);transform-origin:left center;opacity:.75}
+.gate-open #gateRight{transform:translateX(18px) scaleX(.18);transform-origin:right center;opacity:.75}
+#gardenJourney:not([hidden]){animation:journey-arrive .6s ease both}
+@keyframes journey-arrive{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.scene{margin:0 0 38px;padding:25px 0 0;border-top:1px solid var(--line);scroll-margin-top:12px}
+.scene-heading{text-align:center;max-width:600px;margin:0 auto 20px}.scene-heading p:last-child{color:var(--muted);max-width:35em;margin:auto}
+.scene-picture{position:relative;overflow:hidden;border:1px solid #bba987;border-radius:120px 120px 9px 9px;background:#dbe5d0;box-shadow:var(--shadow);max-width:850px;margin:0 auto}
+.scene-picture svg{display:block;width:100%;height:auto;max-height:450px}
+.scene-caption{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 18px;margin:18px 0 0;text-align:center;color:var(--muted);font-size:.85rem}
+.scene-caption p{margin:0}.scene-effects{position:absolute;inset:0;overflow:hidden;pointer-events:none;user-select:none}
+.scene-effects i{position:absolute;left:var(--x);display:block;animation-play-state:paused}
+.scene-visible .scene-effects i{animation-play-state:running}
+.motion-paused .scene-effects i{animation-play-state:paused!important}
+.ambient-petal{top:-12px;width:9px;height:6px;border-radius:50% 0;background:linear-gradient(to right,#dba2b1,#fff1e7);animation:scene-petal var(--duration) linear var(--delay) infinite}
+@keyframes scene-petal{from{opacity:.85;transform:translate(0,-12px) rotate(0)}to{opacity:.2;transform:translate(var(--drift),480px) rotate(45deg)}}
+.ambient-firefly{top:55%;width:5px;height:5px;border-radius:50%;background:#fff1ab;box-shadow:0 0 8px #fff4ab;animation:scene-firefly var(--duration) ease-in-out var(--delay) infinite alternate}
+@keyframes scene-firefly{from{opacity:.1;transform:translateY(45px) rotate(55deg) skew(5deg,5deg)}to{opacity:.9;transform:translate(var(--drift),-65px) rotate(45deg)}}
+.garden-letter{margin:25px auto;max-width:580px;background:#fffaf0;border:1px solid #c5a371;box-shadow:var(--shadow);padding:32px 40px;border-radius:5px;text-align:center;animation:journey-arrive .5s ease both}
+.garden-letter p{white-space:pre-wrap;line-height:1.85;font-family:Georgia,serif;color:#53634f}.garden-letter .signature{font-style:italic;color:#996f75;margin-top:22px}
+.growth-reveal svg{animation:unfold .45s ease both;transform-origin:center bottom}
+@media(max-width:750px){.scene{margin-bottom:25px}.scene-picture{border-radius:75px 75px 8px 8px}.scene-heading{margin-bottom:14px}.garden-letter{padding:26px 20px}.scene-caption{gap:9px}}
+@media(prefers-reduced-motion:reduce){.scene-effects{display:none}#gateLeft,#gateRight{transition:none}.garden-letter,#gardenJourney,.growth-reveal svg{animation:none!important}}
