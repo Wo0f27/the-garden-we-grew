@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f5edde">
+<title>The Garden We Grew</title>
+<link rel="stylesheet" href="styles/garden.css">
+<script defer src="garden-model.js"></script>
+<script defer src="garden.js"></script>
+</head>
+<body>
+<header class="masthead"><span class="monogram" aria-hidden="true">✿</span><span data-copy="brand">The Garden We Grew</span><span class="edition">Prototype 01</span></header>
+<main id="app" hidden>
+<section class="intro">
+<div class="intro-copy"><p class="kicker" data-copy="eyebrow"></p><h1 data-copy="title"></h1><p class="intro-description" data-copy="intro"></p><a class="button primary" href="#nursery" data-copy="enter"></a></div>
+<div class="hero-art" aria-hidden="true">
+<svg viewBox="0 0 360 330" xmlns="http://www.w3.org/2000/svg">
+<defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#e6eee0"/><stop offset="1" stop-color="#f6e4cc"/></linearGradient></defs>
+<path d="M30 300V147a150 130 0 0 1 300 0v153Z" fill="url(#sky)" stroke="#c5a371" stroke-width="2"/>
+<circle cx="250" cy="80" r="30" fill="#fff5db"/>
+<path d="M31 234Q90 146 180 213T329 184V300H31Z" fill="#b2c3a4"/>
+<path d="M31 257Q120 198 180 242T329 225V300H31Z" fill="#89a087"/>
+<path d="M124 300Q211 250 181 217Q172 201 197 192L208 192Q184 210 198 221Q247 260 246 300Z" fill="#e9d6ba"/>
+<g stroke="#607861" fill="none" stroke-width="3"><path d="M65 286V141Q65 38 180 38Q295 38 295 141V286"/><path d="M78 286V140Q78 50 180 50Q282 50 282 140V286"/><path d="M65 181H78M282 181H295M65 243H78M282 243H295"/></g>
+<g id="heroFlowers"></g>
+<path d="M27 301H334" stroke="#c5a371" stroke-width="2"/>
+</svg>
+</div></section>
+<section id="nursery" class="section">
+<div class="section-head"><span class="chapter">I.</span><div><p class="kicker" data-copy="nurseryKicker"></p><h2 data-copy="nurseryTitle"></h2><p data-copy="nurseryIntro"></p></div></div>
+<div class="progress"><span id="progressText"></span><progress id="progress" value="0" max="6" aria-label="Flowers in bloom"></progress></div>
+<div id="plants" class="plant-grid"></div>
+</section>
+<section id="greenhouse" class="section">
+<div class="section-head"><span class="chapter">II.</span><div><p class="kicker" data-copy="bouquetKicker"></p><h2 data-copy="bouquetTitle"></h2><p data-copy="bouquetIntro"></p></div></div>
+<div class="bouquet-workspace"><div class="bouquet-paper"><div id="bouquetArt" class="bouquet-art"></div><p id="bouquetCount"></p></div>
+<div class="bouquet-controls"><h3 data-copy="arrangeTitle"></h3><p data-copy="arrangeHint"></p><div id="arrangement"></div><label for="wrap" data-copy="wrapLabel"></label><select id="wrap"></select><label for="ribbon" data-copy="ribbonLabel"></label><select id="ribbon"></select><label class="check"><input type="checkbox" id="greenery"><span data-copy="greeneryLabel"></span></label><div class="button-row"><button type="button" id="png" data-copy="savePng"></button><button type="button" id="svg" class="secondary" data-copy="saveSvg"></button></div><p class="quiet" data-copy="exportHint"></p></div></div>
+</section>
+<section class="closing"><span class="closing-mark" aria-hidden="true">❦</span><h2 data-copy="closingTitle"></h2><p data-copy="closing"></p></section>
+<footer><p data-copy="privacy"></p><button type="button" class="text-button" id="reset" data-copy="reset"></button></footer>
+</main>
+<p id="loading" class="loading" role="status">Opening the garden…</p>
+<p id="notice" class="notice" role="status" aria-live="polite"></p>
+<noscript><p class="loading">This interactive prototype needs JavaScript.</p></noscript>
+</body></html>
