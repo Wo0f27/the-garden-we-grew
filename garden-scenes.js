@@ -5,6 +5,24 @@
 const M=window.GardenModel,L=window.GardenLandscape,el=id=>document.getElementById(id);
 const reduce=window.matchMedia("(prefers-reduced-motion: reduce)");
 let initialized=false, gateOpen=false, gateWalking=false, gateArriving=false, gateFrame=0, letterOpen=false, letterOpening=false, letterTimer=0, letterReady=false, gateTimer=0, lastSignature="", lastBloomCount=-1, copy;
+const SCENES=["gardenPath","nursery","glassEntrance","greenhouse","finalGarden"];
+const NEIGHBORS={gardenPath:["nursery"],nursery:["gardenPath","glassEntrance"],glassEntrance:["nursery","greenhouse"],greenhouse:["glassEntrance","finalGarden"],finalGarden:["greenhouse","nursery"]};
+let activeScene="gardenPath",sceneTimer=0,pendingScene=null;
+function revealScene(id){
+ clearTimeout(sceneTimer);sceneTimer=0;pendingScene=null;
+ for(const key of SCENES){const scene=el(key);scene.classList.remove("scene-leaving","scene-entering");scene.hidden=key!==id;}
+ el("gardenClosing").hidden=id!=="finalGarden";activeScene=id;
+ const dest=el(id);if(!reduce.matches&&!document.hidden)dest.classList.add("scene-entering");
+ dest.focus({preventScroll:true});dest.scrollIntoView({behavior:"instant",block:"start"});
+}
+function navigateScene(id){
+ if(!gateOpen||gateWalking||pendingScene||!NEIGHBORS[activeScene]?.includes(id))return;
+ if(activeScene==="finalGarden"&&letterOpening)revealLetter();
+ pendingScene=id;
+ if(reduce.matches||document.hidden){revealScene(id);return;}
+ el(activeScene).classList.remove("scene-entering");el(activeScene).classList.add("scene-leaving");
+ sceneTimer=setTimeout(()=>revealScene(id),240);
+}
 const base=(id,stage)=>({id,seed:M.seedFor(id),stage});
 function group(x,y,scale,markup){return '<g transform="translate('+x+' '+y+') scale('+scale+')">'+markup+'</g>';}
 function gardenFlowers(target,state,locations){
@@ -36,6 +54,7 @@ const setCamera=(camera,box)=>camera.setAttribute("viewBox",box.join(" "));
 function showPath(){
  if(!el("gardenJourney").hidden)return;
  el("gardenJourney").hidden=false;
+ el("gateIntro").hidden=true;
  el("openGate").setAttribute("aria-expanded","true");
  const path=el("gardenPath");
  path.focus({preventScroll:true});path.scrollIntoView({behavior:"instant",block:"start"});
@@ -128,13 +147,14 @@ function openLetter(){
 function init(config){
  if(initialized)return;initialized=true;copy=config;
  el("openGate").addEventListener("click",openGate);
+ el("gardenJourney").addEventListener("click",event=>{const link=event.target.closest("[data-scene-go]");if(!link)return;event.preventDefault();if(link.closest("section")?.id!==activeScene)return;navigateScene(link.dataset.sceneGo);});
  el("openLetter").addEventListener("click",openLetter);
  el("closeLetter").addEventListener("click",()=>closeLetter(true));
  el("letterBotanical").innerHTML='<svg viewBox="0 0 180 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+group(90,113,.60,M.flowerMarkup(base("rose",4)))+group(57,111,.39,M.flowerMarkup(base("gypsophila",4)))+group(122,112,.43,M.flowerMarkup(base("peony",4)))+'</svg>';
- if(reduce.addEventListener)reduce.addEventListener("change",()=>{motion();if(reduce.matches&&gateWalking)finishGate();if(reduce.matches&&letterOpening)revealLetter();});
+ if(reduce.addEventListener)reduce.addEventListener("change",()=>{motion();if(reduce.matches&&gateWalking)finishGate();if(reduce.matches&&letterOpening)revealLetter();if(reduce.matches&&pendingScene)revealScene(pendingScene);});
  if("IntersectionObserver" in window){const io=new IntersectionObserver(entries=>entries.forEach(e=>e.target.classList.toggle("scene-visible",e.isIntersecting)),{threshold:.04});for(const scene of document.querySelectorAll(".scene-picture"))io.observe(scene);}
  else for(const scene of document.querySelectorAll(".scene-picture"))scene.classList.add("scene-visible");
- document.addEventListener("visibilitychange",()=>{document.body.classList.toggle("motion-paused",document.hidden);if(document.hidden&&gateWalking)finishGate();if(document.hidden&&letterOpening)revealLetter();});
+ document.addEventListener("visibilitychange",()=>{document.body.classList.toggle("motion-paused",document.hidden);if(document.hidden&&gateWalking)finishGate();if(document.hidden&&letterOpening)revealLetter();if(document.hidden&&pendingScene)revealScene(pendingScene);});
  el("heroFoliage").innerHTML=L.bush(55,289,22,82)+L.bush(306,290,23,223)+L.fern(48,295,43,317)+L.fern(312,296,46,812);
  el("heroVines").innerHTML=L.vine(66,181,35,119,1,23)+L.vine(294,184,35,121,-1,41);
  el("glassFoliage").innerHTML=L.bush(60,264,28,13)+L.bush(540,264,28,53)+L.fern(95,276,35,79)+L.fern(507,276,35,107);

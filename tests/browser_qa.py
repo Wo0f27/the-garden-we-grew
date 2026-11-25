@@ -24,6 +24,16 @@ def fit(page):
     assert sizes["content"] <= sizes["view"]+1, sizes
 def click(page, selector):
     page.locator(selector).click()
+SCENES = ["gardenPath","nursery","glassEntrance","greenhouse","finalGarden"]
+def only_scene(page,id):
+    expect(page.locator("#"+id)).to_be_visible()
+    for other in SCENES:
+        if other != id: expect(page.locator("#"+other)).to_be_hidden()
+    if id=="finalGarden": expect(page.locator("#gardenClosing")).to_be_visible()
+    else: expect(page.locator("#gardenClosing")).to_be_hidden()
+def go(page,source,destination):
+    click(page, f'#{source} [data-scene-go="{destination}"]')
+    only_scene(page,destination)
 def plant(page, id, count=4):
     click(page, f'#plants button[data-id="{id}"][data-action="plant"]')
     for _ in range(count): click(page, f'#plants button[data-id="{id}"][data-action="water"]')
@@ -62,7 +72,14 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     expect(page.locator("#openGate")).not_to_have_attribute("aria-disabled","true")
     expect(page.locator("#openGate")).to_have_attribute("aria-expanded","true")
     expect(page.locator("#gateCamera")).to_have_attribute("viewBox","0 0 360 330")
+    only_scene(page,"gardenPath")
+    expect(page.locator("#gateIntro")).to_be_hidden()
     expect(page.locator("#distantGreenhouse")).to_be_visible()
+    page.evaluate("window.scrollTo(0,document.body.scrollHeight)")
+    only_scene(page,"gardenPath")
+    page.locator("#gardenPath .scene-picture").screenshot(path=str(OUT/(name+"-path.png")),animations="disabled")
+    if reduce=="no-preference": expect(page.locator("#butterflyEffects .ambient-butterfly")).to_have_count(3)
+    go(page,"gardenPath","nursery")
     expect(page.locator("#peachNursery")).to_be_visible()
     expect(page.locator("#peachSticker")).to_have_attribute("src",PEACH_GIF)
     if reduce=="no-preference":
@@ -72,8 +89,9 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
         expect(page.locator(".nursery-peach")).to_be_hidden()
     expect(page.locator("#visitGreenhouse")).to_have_attribute("href","#glassEntrance")
     assert page.locator("#peachNursery").evaluate('el=>el.previousElementSibling.id==="plants"&&el.closest("#nursery")!==null')
-    click(page,"#visitGreenhouse")
+    go(page,"nursery","glassEntrance")
     expect(page.locator("#glassEntrance")).to_be_in_viewport()
+    go(page,"glassEntrance","nursery")
     assert page.locator("#distantGreenhouse").evaluate("""el=>{const p=new DOMPoint(300,241).matrixTransform(el.transform.baseVal.consolidate().matrix);return Math.abs(p.x-348)<.01&&Math.abs(p.y-172)<.01}"""), "greenhouse threshold does not meet path endpoint"
     assert page.locator("#gardenJourney").evaluate("(el)=>getComputedStyle(el).animationName")=="none"
     fit(page)
@@ -85,11 +103,12 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     if reduce=="no-preference": page.wait_for_timeout(1000)
     expect(page.locator("#notice")).to_be_empty(timeout=6000)
     assert page.locator("#plants .plant-card").evaluate_all("""cards=>cards.every(card=>{const art=card.querySelector(".plant-art").getBoundingClientRect(),svg=card.querySelector(".plant-art svg").getBoundingClientRect(),name=card.querySelector("h3").getBoundingClientRect();return svg.bottom<=art.bottom+1&&svg.top>=art.top-1&&art.bottom<=name.top+1})"""), "nursery illustration overlaps heading"
-    page.locator("#gardenPath .scene-picture").screenshot(path=str(OUT/(name+"-path.png")),animations="disabled")
     page.locator("#plants").screenshot(path=str(OUT/(name+"-nursery.png")),animations="disabled")
     expect(page.locator("#openLetter")).to_be_enabled()
     assert page.locator("#progress").evaluate("(el)=>el.value")==6
     fit(page)
+    go(page,"nursery","glassEntrance")
+    go(page,"glassEntrance","greenhouse")
     for id in SPECIES: click(page,f'#flowerTray button[data-id="{id}"]')
     assert len(saved(page)["bouquet"])==6
     click(page,"#editPosition")
@@ -133,6 +152,7 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     assert png[:8]==b"\x89PNG\r\n\x1a\n"
     assert struct.unpack(">II",png[16:24])==(1200,1320)
     snapshot=saved(page)
+    go(page,"greenhouse","finalGarden")
     click(page,"#openLetter")
     expect(page.locator("#gardenLetter")).to_be_visible()
     expect(page.locator("#notice")).to_be_empty()
@@ -143,6 +163,7 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     expect(page.locator("#gardenJourney")).to_be_visible()
     expect(page.locator("#openGate")).not_to_have_attribute("aria-disabled","true")
     assert saved(page)==snapshot
+    only_scene(page,"gardenPath")
     expect(page.locator("#openLetter")).to_be_enabled()
     expect(page.locator("#undoBouquet")).to_be_disabled()
     fit(page)

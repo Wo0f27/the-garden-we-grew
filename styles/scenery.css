@@ -38,3 +38,6 @@
 .scene-effects .ambient-butterfly span{animation-play-state:paused}.scene-visible .scene-effects .ambient-butterfly span{animation-play-state:running}.motion-paused .scene-effects .ambient-butterfly span{animation-play-state:paused!important}
 @media(max-width:750px){.ambient-butterfly{width:18px;height:14px}.ambient-butterfly span{width:9px;height:12px}.ambient-butterfly:after{left:8px;height:8px}}
 @media(prefers-reduced-motion:reduce){.scene-effects .ambient-butterfly,.scene-effects .ambient-butterfly span{animation:none!important}}
+
+/* 8.10: one visible chapter at a time; never transform an entire page. */
+.scene-navigation{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:0 0 20px}.scene-next{justify-content:center;margin:32px 0 0}.scene-leaving{animation:chapter-leave .24s ease-in both;pointer-events:none}.scene-entering{animation:chapter-enter .42s ease-out both}@keyframes chapter-leave{from{opacity:1}to{opacity:0}}@keyframes chapter-enter{from{opacity:0}to{opacity:1}}@media(prefers-reduced-motion:reduce){.scene-leaving,.scene-entering{animation:none!important}}
