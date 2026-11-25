@@ -14,7 +14,7 @@ window.GARDEN_TEXT = {
   brand: "The Garden We Can Call Our Own",
   eyebrow: "Our safe little bubble for our botanical needs haha",
   title: "A Garden Of Our Own",
-  intro: "Take a little breather of your very own garden, considering it's been appearing alot on your reels haha.",
+  intro: "Take a little breather on your very own garden, considering it's been appearing alot on your reels haha.",
   enter: "Step into the garden",
   gateOpened: "The gate is open",
 
