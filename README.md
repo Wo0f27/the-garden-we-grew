@@ -18,7 +18,7 @@ Static site; no install, no build, no server-side service. To publish, enable **
 
 ## Personalize
 
-Edit only [garden-text.js](garden-text.js) for ordinary writing. Keep object keys and punctuation, and change quoted values. It is fetched with a fresh URL on startup to avoid stale text. Do not add sensitive information to the public repository.
+Edit only [garden-text.js](garden-text.js) for ordinary writing. Its twelve numbered sections follow the visitor journey: entrance, path, nursery, flower meanings/messages, Peach dialogue, workshop, Peach tutorial, finishing controls, envelope, letter/closing, status messages, and accessibility descriptions. Keep keys and punctuation, edit quoted values, preserve named placeholders such as `{count}` and use `\n\n` for paragraphs. It is loaded with a fresh URL on startup. The only fixed fallback text is the pre-load/no-JavaScript or load-failure notice, needed when the text file cannot run. Do not add sensitive information to the public repository.
 
 ## Automated browser QA
 
@@ -67,3 +67,6 @@ Replaces chapter fades with a full-viewport wind sweep of 36 reusable blush, cre
 
 ## Interactive greenhouse doors and Peach guide (8.17)
 The greenhouse exterior now has two interactive sliding door leaves. Peach appears beside the greenhouse on wider displays and alongside her speech bubble beneath the illustration on mobile, using the existing Paw Paw GIF reference. The old enter button is removed; Return to the nursery remains. Tapping or keyboard-activating the illustrated door opens both leaves before the existing petal curtain takes the visitor inside. Input is locked during the door and petal sequence, reduced motion enters immediately, and returning outside resets the door. No bouquet, letter, or garden state changes. Browser coverage checks guide, actual door target, absence of duplicate enter button, return link and opening sequence. Physical appearance remains unverified.
+
+## Gift-facing header and editable personalization (8.18)
+Centers the title/monogram, removes the visible prototype version and the entire privacy footer, and relocates the confirmed reset action to a discreet header icon. Consolidates visible scene copy, Peach's name and dialogue, flower messages, tutorial, letter, buttons, progress templates, notifications and accessibility labels into twelve numbered sections in garden-text.js. Existing personal wording retained except removed obsolete labels. Pre-load and failure fallback text remains independent of the file it reports on. No garden mechanics changed. Browser QA checks the centered title, absence of footer/version and reset accessibility.

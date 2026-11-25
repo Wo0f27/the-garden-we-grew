@@ -55,6 +55,10 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     page.route(PEACH_GIF,lambda route:route.fulfill(status=200,content_type="image/gif",body=PEACH_FIXTURE))
     page.goto(url,wait_until="networkidle")
     expect(page.locator("#app")).to_be_visible()
+    expect(page.locator(".edition")).to_have_count(0)
+    expect(page.locator("#app footer")).to_have_count(0)
+    assert page.locator(".navbar-brand").evaluate("el=>{const r=el.getBoundingClientRect(),p=el.parentElement.getBoundingClientRect();return Math.abs((r.left+r.right)-(p.left+p.right))<=2}"), "navbar title not centered"
+    expect(page.locator("#reset")).to_be_enabled()
     fit(page)
     page.screenshot(path=str(OUT/(name+"-entrance.png")))
     # Capture the destination viewBox at the instant the journey becomes visible.

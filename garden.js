@@ -5,8 +5,9 @@ const M=window.GardenModel, el=id=>document.getElementById(id), KEY="the-garden-
 let copy,state=M.fresh(),noticeTimer,storageOK=true;
 let paperPreview=false,editMode=false,selectedFlower=null,drag=null,undoStack=[],redoStack=[], nurserySignature="",traySignature="",pngBusy=false;
 function clearNotice(){clearTimeout(noticeTimer);el("notice").textContent="";}
+function format(template,values){return template.replace(/\{([a-zA-Z]+)\}/g,(match,key)=>Object.hasOwn(values,key)?String(values[key]):match);}
 function tell(message){clearNotice();el("notice").textContent=message;noticeTimer=setTimeout(clearNotice,3500);}
-function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch{storageOK=false;tell("This browser could not save the garden. Keep this tab open.");}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch{storageOK=false;tell(copy.saveFailed);}}
 function loadCopy(){
  return new Promise((resolve,reject)=>{const script=document.createElement("script");script.src="garden-text.js?v="+Date.now();let timeout=setTimeout(()=>{script.remove();reject(new Error("Text load timed out"));},7000);
  script.onload=()=>{clearTimeout(timeout);window.GARDEN_TEXT?resolve(window.GARDEN_TEXT):reject(new Error("Invalid text file"));};
@@ -116,7 +117,7 @@ function render(focus){
  if(nurserySignature!==signature){nurserySignature=signature;root.replaceChildren();
  for(const id of M.species){
   const p=state.plants[id], c=copy.flowers[id], stage=p?.stage??-1;
-  const card=node("article","plant-card");const art=node("div","plant-art");art.innerHTML=M.potSvg(p);if(focus?.id===id&&focus.action==="plant")art.classList.add("growth-reveal");card.append(art,node("h3","",c.name),node("div","species-meaning",c.meaning),node("div","stage",stage<0?"Ready to plant":copy.stages[stage]));
+  const card=node("article","plant-card");const art=node("div","plant-art");art.innerHTML=M.potSvg(p);if(focus?.id===id&&focus.action==="plant")art.classList.add("growth-reveal");card.append(art,node("h3","",c.name),node("div","species-meaning",c.meaning),node("div","stage",stage<0?copy.readyToPlant:copy.stages[stage]));
   const meter=node("div","stage-meter");meter.setAttribute("aria-hidden","true");for(let i=0;i<5;i++)meter.append(node("i",i<=stage?"filled":""));card.append(meter);
   if(stage===4)card.append(node("p","plant-message",c.message));
   const action=stage<0?"plant":stage<4?"water":"add", added=M.stemCount(state,id)>0;
@@ -124,7 +125,7 @@ function render(focus){
   b.setAttribute("aria-label",b.textContent+" — "+c.name);b.disabled=action==="add"&&(added||state.bouquet.length>=M.MAX_STEMS);card.append(b);root.append(card);if(focus?.id===id&&focus.action==="water"&&p)growPot(art,p);
  }}
  if(window.GardenScenes)window.GardenScenes.update(state,copy,grown);
- el("progressText").textContent=grown+" of "+M.species.length+" flowers in bloom";el("progress").max=M.species.length;el("progress").value=grown;
+ el("progressText").textContent=format(copy.nurseryProgress,{count:grown,total:M.species.length});el("progress").max=M.species.length;el("progress").value=grown;
  const bouquetArt=el("bouquetArt");updatePreview();
  // Render final paper immediately; avoid SVG group transform animations on mobile.
  const tray=el("flowerTray"),trayKey=signature+"|"+state.bouquet.join(",");if(traySignature!==trayKey){traySignature=trayKey;tray.replaceChildren();
@@ -133,14 +134,14 @@ function render(focus){
   const card=node("article","tray-flower"+(selected?" tray-selected":""));card.dataset.flower=id;
   const preview=node("div","tray-art");preview.innerHTML=M.potSvg(p);
   card.append(preview,node("span","tray-name",name),node("small","tray-state",selected?copy.traySelected+" · "+(i+1):ready?copy.trayReady:copy.trayGrowing));
-  if(selected){const controls=node("div","tray-arrange");for(const [action,label,disabled,aria] of [["up","↑",i===0,"Move earlier"],["down","↓",i===state.bouquet.length-1,"Move later"],["remove","×",false,"Remove"]]){const b=button(label,action,id,"secondary");b.disabled=disabled;b.setAttribute("aria-label",aria+" — "+name);controls.append(b);}card.append(controls);}
+  if(selected){const controls=node("div","tray-arrange");for(const [action,label,disabled,aria] of [["up",copy.moveEarlierSymbol,i===0,copy.moveEarlier],["down",copy.moveLaterSymbol,i===state.bouquet.length-1,copy.moveLater],["remove",copy.removeSymbol,false,copy.removeStem]]){const b=button(label,action,id,"secondary");b.disabled=disabled;b.setAttribute("aria-label",aria+" — "+name);controls.append(b);}card.append(controls);}
   if(!selected||state.bouquet.find(stem=>M.stemSpecies(stem)===kind)===id){const add=button(selected?copy.trayAddMore:copy.trayAdd,"add",kind,"secondary tray-add");add.disabled=!ready||state.bouquet.length>=M.MAX_STEMS;add.setAttribute("aria-label",(selected?copy.trayAddMore:copy.trayAdd)+" — "+copy.flowers[kind].name);card.append(add);}
   tray.append(card);
  }}
  el("paperStyle").value=state.paperStyle;el("ribbonStyle").value=state.ribbonStyle;
  const wrapButton=el("wrapBouquet");wrapButton.disabled=!state.bouquet.length;wrapButton.textContent=state.wrapped?copy.unwrapButton:copy.wrapButton;wrapButton.setAttribute("aria-pressed",String(state.wrapped));
  el("wrapStatus").textContent=!state.bouquet.length?copy.wrapEmpty:state.wrapped?copy.wrapReady:copy.wrapWaiting;
- el("bouquetCount").textContent=state.bouquet.length?state.bouquet.length+" / "+M.MAX_STEMS+" flowers in your bouquet":copy.emptyBouquet;
+ el("bouquetCount").textContent=state.bouquet.length?format(copy.bouquetCount,{count:state.bouquet.length,max:M.MAX_STEMS}):copy.emptyBouquet;
  el("wrap").value=state.wrap;el("ribbon").value=state.ribbon;el("greenery").checked=state.greenery;el("svg").disabled=!state.bouquet.length;el("png").disabled=pngBusy||!state.bouquet.length;
  if(focus?.id){const scope=focus.scope?el(focus.scope):root,list=[...scope.querySelectorAll("button[data-id]")],target=list.find(b=>b.dataset.id===focus.id&&b.dataset.action===focus.action&&!b.disabled)||list.find(b=>b.dataset.id===focus.id&&!b.disabled)||list.find(b=>!b.disabled);(target||(focus.scope==="flowerTray"?el("positionFlower"):null))?.focus({preventScroll:true});}
 }
@@ -150,19 +151,20 @@ function act(e){const b=e.target.closest("button[data-action]");if(!b||b.disable
  if(action==="add")changed=M.add(state,id);
  if(action==="remove")changed=M.remove(state,id);
  if(action==="up"||action==="down")changed=M.move(state,id,action==="up"?-1:1);
- if(changed){if(["add","remove","up","down"].includes(action)){paperPreview=false;record(before);}const fromTray=!!b.closest("#flowerTray");persist();render({id,action,scope:fromTray?"flowerTray":"plants"});if(storageOK){if(action==="water")tell(copy.flowers[id].name+": "+copy.stages[state.plants[id].stage]);else if(action==="add")tell(copy.flowers[id].name+" added to your bouquet.");}}
+ if(changed){if(["add","remove","up","down"].includes(action)){paperPreview=false;record(before);}const fromTray=!!b.closest("#flowerTray");persist();render({id,action,scope:fromTray?"flowerTray":"plants"});if(storageOK){if(action==="water")tell(format(copy.waterNotice,{flower:copy.flowers[id].name,stage:copy.stages[state.plants[id].stage]}));else if(action==="add")tell(format(copy.addNotice,{flower:copy.flowers[id].name}));}}
 }
 function download(blob,filename){const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
 function svgBlob(){return new Blob([M.bouquetSvg(state,copy.brand)],{type:"image/svg+xml;charset=utf-8"});}
 function saveSvg(){if(state.bouquet.length)download(svgBlob(),"our-garden-bouquet.svg");}
 async function savePng(){
  if(!state.bouquet.length||pngBusy)return;pngBusy=true;const b=el("png");b.disabled=true;const url=URL.createObjectURL(svgBlob());
- try{const img=new Image();await new Promise((ok,no)=>{img.onload=ok;img.onerror=no;img.src=url;});const canvas=document.createElement("canvas");canvas.width=1200;canvas.height=1320;const ctx=canvas.getContext("2d");if(!ctx)throw Error("Canvas unavailable");ctx.drawImage(img,0,0,1200,1320);const blob=await new Promise((ok,no)=>canvas.toBlob(v=>v?ok(v):no(Error("PNG unavailable")),"image/png"));download(blob,"our-garden-bouquet.png");tell("Your bouquet is ready to save.");}catch{tell("PNG export unavailable on this browser. Choose Save as SVG instead.");}finally{URL.revokeObjectURL(url);pngBusy=false;b.disabled=!state.bouquet.length;}
+ try{const img=new Image();await new Promise((ok,no)=>{img.onload=ok;img.onerror=no;img.src=url;});const canvas=document.createElement("canvas");canvas.width=1200;canvas.height=1320;const ctx=canvas.getContext("2d");if(!ctx)throw Error("Canvas unavailable");ctx.drawImage(img,0,0,1200,1320);const blob=await new Promise((ok,no)=>canvas.toBlob(v=>v?ok(v):no(Error("PNG unavailable")),"image/png"));download(blob,"our-garden-bouquet.png");tell(copy.exportReady);}catch{tell(copy.exportFailed);}finally{URL.revokeObjectURL(url);pngBusy=false;b.disabled=!state.bouquet.length;}
 }
 function fillOptions(id,options){for(const [value,label] of Object.entries(options)){const o=node("option","",label);o.value=value;el(id).append(o);}}
 async function start(){
  try{copy=await loadCopy();for(const id of M.species)if(!copy.flowers?.[id]||typeof copy.flowers[id].name!=="string")throw Error("Incomplete flower text");
  document.title=copy.brand;document.querySelectorAll("[data-copy]").forEach(n=>{const v=copy[n.dataset.copy];if(typeof v==="string")n.textContent=v;});
+ for(const attr of ["aria-label","alt","title"]){document.querySelectorAll("[data-copy-"+attr+"]").forEach(n=>{const v=copy[n.getAttribute("data-copy-"+attr)];if(typeof v==="string")n.setAttribute(attr,v);});}
  try{state=M.normalize(JSON.parse(localStorage.getItem(KEY)||"null"));}catch{storageOK=false;}
  fillOptions("wrap",copy.wraps);fillOptions("ribbon",copy.ribbons);fillOptions("paperStyle",copy.paperStyles);fillOptions("ribbonStyle",copy.ribbonStyles);
  const hero=el("heroFlowers");hero.innerHTML=M.species.map((id,i)=>'<g transform="translate('+[54,105,139,232,270,311][i]+' '+[292,283,282,281,290,295][i]+') scale('+[.68,.58,.46,.48,.64,.72][i]+')">'+M.flowerMarkup({id,seed:M.seedFor(id),stage:4})+'</g>').join("");
@@ -180,10 +182,10 @@ async function start(){
  const art=el("bouquetArt");art.addEventListener("pointerdown",beginDrag);art.addEventListener("pointermove",moveDrag);art.addEventListener("pointerup",e=>finishDrag(e,true));art.addEventListener("pointercancel",e=>finishDrag(e,false));art.addEventListener("lostpointercapture",e=>finishDrag(e,false));
  window.addEventListener("blur",()=>cancelDrag(true));document.addEventListener("visibilitychange",()=>{if(document.hidden)cancelDrag(true);});
  el("png").addEventListener("click",savePng);el("svg").addEventListener("click",saveSvg);
- el("reset").addEventListener("click",()=>{if(!confirm(copy.resetConfirm))return;cancelDrag();undoStack=[];redoStack=[];paperPreview=false;editMode=false;selectedFlower=null;state=M.fresh();persist();render();tell("A new garden is ready.");});
+ el("reset").addEventListener("click",()=>{if(!confirm(copy.resetConfirm))return;cancelDrag();undoStack=[];redoStack=[];paperPreview=false;editMode=false;selectedFlower=null;state=M.fresh();persist();render();tell(copy.resetDone);});
  if(window.GardenScenes)window.GardenScenes.init(copy);
  el("openLetter").addEventListener("click",clearNotice);
- render();el("loading").hidden=true;el("app").hidden=false;if(!storageOK)tell("Local storage is unavailable or could not be read.");
+ render();el("loading").hidden=true;el("app").hidden=false;el("reset").disabled=false;if(!storageOK)tell(copy.storageUnavailable);
  }catch(err){el("loading").textContent="The garden text could not be loaded. Please refresh this page. If you edited garden-text.js, check its quotation marks and commas.";console.error(err);}
 }
 start();

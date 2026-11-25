@@ -93,3 +93,9 @@ body>.masthead{flex:0 0 auto;width:100%;margin:0 auto;padding-top:max(12px,env(s
 @media(max-width:750px){.glass-arrival{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;gap:8px}.glass-guide{flex-direction:row;justify-content:center;gap:8px}.glass-peach{width:clamp(55px,17vw,80px)}.glass-peach img{max-height:68px}.glass-speech{font-size:.78rem;padding:7px 10px;max-width:290px}.glass-speech .glass-speaker{font-size:.96rem}}
 @media(max-height:420px){#gardenJourney>#glassEntrance{grid-template-rows:auto minmax(190px,1fr) auto;align-content:start}.glass-arrival{min-height:190px}}
 @media(prefers-reduced-motion:reduce){.glass-peach{display:none}#glassDoorLeft,#glassDoorRight{transition:none}}
+
+/* 8.18: centered gift-facing navbar; no prototype label or privacy footer. */
+body>.masthead#gardenNavbar{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:0;justify-items:center;min-height:58px}
+.navbar-brand{grid-column:2;display:flex;align-items:center;justify-content:center;gap:7px;max-width:100%;min-width:0;text-align:center;font:1.12rem Georgia,serif;line-height:1.25;overflow-wrap:anywhere}
+.navbar-brand .monogram{flex:none}.navbar-reset{grid-column:3;width:44px;min-height:44px;padding:0;border:0;background:transparent;color:var(--muted);opacity:.75}.navbar-reset:hover{opacity:1}.navbar-reset:disabled{opacity:.35}
+@media(max-width:360px){.navbar-brand{font-size:1rem;gap:4px}}

@@ -34,7 +34,7 @@ function finishSceneTransition(){
  clearTimeout(sceneTimer);sceneTimer=0;
  const id=pendingScene;if(activeScene!==id)revealScene(id);
  const overlay=el("petalTransition");overlay.hidden=true;overlay.removeAttribute("data-phase");
- el("app").inert=false;pendingScene=null;scenePhase="idle";
+ el("app").inert=false;el("gardenNavbar").inert=false;pendingScene=null;scenePhase="idle";
  if(!document.hidden)el(id).focus({preventScroll:true});
 }
 function coverScene(){
@@ -53,7 +53,7 @@ function startPetalCurtain(){
  if(!pendingScene)return;
  if(reduce.matches||document.hidden){finishSceneTransition();return;}
  buildTransitionPetals();
- const overlay=el("petalTransition");overlay.hidden=false;overlay.dataset.phase="covering";scenePhase="covering";el("app").inert=true;
+ const overlay=el("petalTransition");overlay.hidden=false;overlay.dataset.phase="covering";scenePhase="covering";el("app").inert=true;el("gardenNavbar").inert=true;
  sceneTimer=setTimeout(coverScene,PETAL_COVER_MS);
 }
 function navigateScene(id){
@@ -62,7 +62,7 @@ function navigateScene(id){
  pendingScene=id;
  if(reduce.matches||document.hidden){finishSceneTransition();return;}
  if(activeScene==="glassEntrance"&&id==="greenhouse"){
-  scenePhase="door-opening";el("app").inert=true;el("glassEntrance").classList.add("glass-door-opening");
+  scenePhase="door-opening";el("app").inert=true;el("gardenNavbar").inert=true;el("glassEntrance").classList.add("glass-door-opening");
   sceneTimer=setTimeout(startPetalCurtain,380);return;
  }
  startPetalCurtain();
