@@ -40,7 +40,7 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     expect(page.locator("#openLetter")).to_be_disabled()
     for id in SPECIES: plant(page,id)
     expect(page.locator("#openLetter")).to_be_enabled()
-    expect(page.locator("#progress")).to_have_value("6")
+    assert page.locator("#progress").evaluate("(el)=>el.value")==6
     fit(page)
     for id in SPECIES: click(page,f'#flowerTray button[data-id="{id}"]')
     assert len(saved(page)["bouquet"])==6
