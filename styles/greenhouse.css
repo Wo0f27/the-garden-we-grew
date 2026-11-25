@@ -22,3 +22,14 @@
 #flowerTray{grid-template-columns:repeat(6,minmax(0,1fr))}.tray-flower{border:1px solid var(--line);border-radius:8px;align-items:center;text-align:center;gap:4px;padding:7px 4px}.tray-selected{background:#e9eddd;border-color:#a1ad91}.tray-flower .tray-arrange{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;width:100%;margin-top:auto}.tray-flower .tray-arrange button{padding:5px 0;min-width:0;min-height:44px;font-size:1rem}.tray-flower .tray-add{width:100%;margin-top:auto;min-height:44px;padding:5px 2px;font-size:.75rem}.tray-flower .tray-name{font-size:.88rem}.tray-flower .tray-state{min-height:1.2em}.merged-workspace{display:block!important}.merged-workspace .bouquet-controls{max-width:680px;margin:0 auto}
 @media(max-width:750px){#flowerTray{grid-template-columns:repeat(2,minmax(0,1fr))}.tray-flower{padding:7px 8px}.tray-flower .tray-arrange{gap:5px}.live-workbench{--room-height:clamp(155px,31dvh,255px)}.live-workbench #positionHint{font-size:.68rem!important}.live-workbench .florist-room{border-radius:65px 65px 7px 7px}.workbench-status{gap:5px 8px}.workbench-status .edit-position{min-width:0;font-size:.78rem;padding:7px 9px}}
 @media(max-height:520px){.live-workbench{position:relative;top:auto}}
+
+/* 8.13: make the pinned preview an opaque, edge-to-edge mask of its scrollport.
+   Move the section's visual gutters to its children, not the sticky containing block. */
+#gardenJourney>#greenhouse{padding-top:0;padding-inline:0;isolation:isolate;background:var(--ivory)}
+#greenhouse>.scene-back{margin:16px 5px 20px}
+#greenhouse>.section-head,#greenhouse>.flower-tray,#greenhouse>.merged-workspace,#greenhouse>.scene-next{margin-inline:5px}
+#greenhouse>.live-workbench{box-sizing:border-box;width:100%;margin-inline:0;top:0;padding-inline:5px;background-color:var(--ivory);isolation:isolate;z-index:5}
+/* Extend the opaque background to the scrollport's top edge, including subpixel rounding.
+   No pointer events: positioning handles and preview controls stay interactive. */
+#greenhouse>.live-workbench::before{content:"";position:absolute;inset:-2px 0 0;background:var(--ivory);z-index:-1;pointer-events:none}
+@media(max-height:520px){#greenhouse>.live-workbench{top:auto}#greenhouse>.live-workbench::before{inset:0}}

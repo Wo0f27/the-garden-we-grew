@@ -133,6 +133,12 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     assert saved(page)["bouquet"]==original_order
     expect(page.locator("#bouquetArt [data-flower]")).to_have_count(6)
     page.locator(".live-workbench").screenshot(path=str(OUT/(name+"-workbench.png")),animations="disabled")
+    # Scroll controls past the pin threshold and confirm the preview masks the whole width.
+    if height>520:
+        page.locator("#greenhouse").evaluate("""el=>{const p=el.querySelector(".live-workbench");el.scrollTop+=p.getBoundingClientRect().top-el.getBoundingClientRect().top+100}""")
+        page.wait_for_timeout(450)
+        assert page.locator("#greenhouse").evaluate("""el=>{const p=el.querySelector(".live-workbench"),r=el.getBoundingClientRect(),b=p.getBoundingClientRect(),bg=getComputedStyle(p).backgroundColor;const hit=(x,y)=>p.contains(document.elementFromPoint(x,y));return el.scrollTop>0&&Math.abs(b.top-r.top-el.clientTop)<=2&&Math.abs(b.left-r.left-el.clientLeft)<=1&&Math.abs(b.width-el.clientWidth)<=1&&bg==="rgb(245, 237, 222)"&&hit(b.left+1,b.top+1)&&hit(b.right-2,b.top+1)}"""), "sticky preview leaves an exposed scrolling gap"
+        page.locator("#greenhouse").screenshot(path=str(OUT/(name+"-workbench-pinned.png")),animations="disabled")
     click(page,"#editPosition")
     expect(page.locator("#bouquetArt .flower-handle")).to_have_count(6)
     page.locator("#positionFlower").select_option("rose")
