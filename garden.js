@@ -3,7 +3,7 @@
 "use strict";
 const M=window.GardenModel, el=id=>document.getElementById(id), KEY="the-garden-we-grew-prototype-v1";
 let copy,state=M.fresh(),noticeTimer,storageOK=true;
-let editMode=false,selectedFlower=null,drag=null,undoStack=[],redoStack=[], nurserySignature="",traySignature="",pngBusy=false;
+let paperPreview=false,editMode=false,selectedFlower=null,drag=null,undoStack=[],redoStack=[], nurserySignature="",traySignature="",pngBusy=false;
 function clearNotice(){clearTimeout(noticeTimer);el("notice").textContent="";}
 function tell(message){clearNotice();el("notice").textContent=message;noticeTimer=setTimeout(clearNotice,3500);}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch{storageOK=false;tell("This browser could not save the garden. Keep this tab open.");}}
@@ -43,7 +43,7 @@ function bouquetChange(fn,focus){
  persist();render(focus);return true;
 }
 function historyStep(from,to){
- if(!from.length)return;cancelDrag();to.push(M.bouquetSnapshot(state));M.restoreBouquet(state,from.pop());persist();render();
+ if(!from.length)return;paperPreview=false;cancelDrag();to.push(M.bouquetSnapshot(state));M.restoreBouquet(state,from.pop());persist();render();
 }
 function stemName(id){const kind=M.stemSpecies(id);const n=id===kind?1:Number(id.split("~")[1]);return copy.flowers[kind].name+(M.stemCount(state,kind)>1?" "+n:"");}
 function selectedItem(){return M.bouquetLayout(state.bouquet,state.placements).find(x=>x.id===selectedFlower);}
@@ -76,7 +76,7 @@ function renderPositionControls(){
  el("undoBouquet").disabled=!undoStack.length;el("redoBouquet").disabled=!redoStack.length;
 }
 function updatePreview(){
- const art=el("bouquetArt");art.classList.remove("wrap-sequence");art.innerHTML=M.bouquetSvg(state,copy.brand,{workbench:true});renderPositionControls();addHandles();
+ const art=el("bouquetArt");art.classList.remove("wrap-sequence");const preview=paperPreview&&!state.wrapped&&!editMode&&state.bouquet.length>0;art.innerHTML=M.bouquetSvg(state,copy.brand,{workbench:true,previewWrap:preview});el("paperPreviewStatus").hidden=!preview;renderPositionControls();addHandles();
 }
 function cancelDrag(restore=false){
  if(!drag)return;const active=drag;drag=null;
@@ -107,7 +107,7 @@ function finishDrag(e,commit){
  updatePreview();
 }
 function nudge(angle,scale){
- const item=selectedItem();if(!item||state.wrapped)return;bouquetChange(()=>M.setPlacement(state,item.id,{angle:item.angle+angle,scale:item.scale+scale}));
+ paperPreview=false;const item=selectedItem();if(!item||state.wrapped)return;bouquetChange(()=>M.setPlacement(state,item.id,{angle:item.angle+angle,scale:item.scale+scale}));
 }
 function render(focus){
  cancelDrag();
@@ -126,7 +126,7 @@ function render(focus){
  if(window.GardenScenes)window.GardenScenes.update(state,copy,grown);
  el("progressText").textContent=grown+" of "+M.species.length+" flowers in bloom";el("progress").max=M.species.length;el("progress").value=grown;
  const bouquetArt=el("bouquetArt");updatePreview();
- if(focus?.action==="wrap"&&state.wrapped){void bouquetArt.offsetWidth;bouquetArt.classList.add("wrap-sequence");}
+ // Render final paper immediately; avoid SVG group transform animations on mobile.
  const tray=el("flowerTray"),trayKey=signature+"|"+state.bouquet.join(",");if(traySignature!==trayKey){traySignature=trayKey;tray.replaceChildren();
  const ids=[...state.bouquet,...M.species.filter(kind=>!M.stemCount(state,kind))];
  for(const id of ids){const kind=M.stemSpecies(id),p=state.plants[kind],i=state.bouquet.indexOf(id),selected=i>=0,ready=p?.stage===4,name=selected?stemName(id):copy.flowers[kind].name;
@@ -150,7 +150,7 @@ function act(e){const b=e.target.closest("button[data-action]");if(!b||b.disable
  if(action==="add")changed=M.add(state,id);
  if(action==="remove")changed=M.remove(state,id);
  if(action==="up"||action==="down")changed=M.move(state,id,action==="up"?-1:1);
- if(changed){if(["add","remove","up","down"].includes(action))record(before);const fromTray=!!b.closest("#flowerTray");persist();render({id,action,scope:fromTray?"flowerTray":"plants"});if(storageOK){if(action==="water")tell(copy.flowers[id].name+": "+copy.stages[state.plants[id].stage]);else if(action==="add")tell(copy.flowers[id].name+" added to your bouquet.");}}
+ if(changed){if(["add","remove","up","down"].includes(action)){paperPreview=false;record(before);}const fromTray=!!b.closest("#flowerTray");persist();render({id,action,scope:fromTray?"flowerTray":"plants"});if(storageOK){if(action==="water")tell(copy.flowers[id].name+": "+copy.stages[state.plants[id].stage]);else if(action==="add")tell(copy.flowers[id].name+" added to your bouquet.");}}
 }
 function download(blob,filename){const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
 function svgBlob(){return new Blob([M.bouquetSvg(state,copy.brand)],{type:"image/svg+xml;charset=utf-8"});}
@@ -169,9 +169,9 @@ async function start(){
  const room=el("workroomFlowers");room.innerHTML=M.species.map((id,i)=>'<g transform="translate('+[74,145,214,526,595,667][i]+' 159) scale(.66)">'+M.flowerMarkup({id,seed:M.seedFor(id),stage:4})+'</g>').join("");
  el("bouquetHelp").addEventListener("click",()=>{cancelDrag(true);const dialog=el("helpDialog");if(!dialog.open)dialog.showModal();});el("closeHelp").addEventListener("click",()=>el("helpDialog").close());
  el("plants").addEventListener("click",act);el("flowerTray").addEventListener("click",act);
- for(const key of ["paperStyle","ribbonStyle","wrap","ribbon","greenery"]){el(key).addEventListener("change",()=>bouquetChange(()=>{state[key]=key==="greenery"?el(key).checked:el(key).value;}));}
- el("wrapBouquet").addEventListener("click",()=>bouquetChange(()=>M.setWrapped(state,!state.wrapped),{action:"wrap"}));
- el("editPosition").addEventListener("click",()=>{if(state.wrapped||!state.bouquet.length)return;cancelDrag();editMode=!editMode;updatePreview();});
+ for(const key of ["paperStyle","ribbonStyle","wrap","ribbon","greenery"]){const control=el(key);const preview=()=>{if(key!=="greenery"&&state.bouquet.length&&!state.wrapped&&!editMode){paperPreview=true;updatePreview();}};control.addEventListener("focus",preview);control.addEventListener("change",()=>{if(key!=="greenery"&&!state.wrapped&&!editMode)paperPreview=true;const changed=bouquetChange(()=>{state[key]=key==="greenery"?control.checked:control.value;});if(!changed)updatePreview();});}
+ el("wrapBouquet").addEventListener("click",()=>{paperPreview=false;bouquetChange(()=>M.setWrapped(state,!state.wrapped),{action:"wrap"});});
+ el("editPosition").addEventListener("click",()=>{if(state.wrapped||!state.bouquet.length)return;cancelDrag();paperPreview=false;editMode=!editMode;updatePreview();});
  el("positionFlower").addEventListener("change",()=>{cancelDrag();selectedFlower=el("positionFlower").value;updatePreview();});
  for(const [id,angle,scale] of [["tiltLeft",-5,0],["tiltRight",5,0],["raiseFlower",0,.08],["lowerFlower",0,-.08]])el(id).addEventListener("click",()=>nudge(angle,scale));
  el("resetFlower").addEventListener("click",()=>bouquetChange(()=>M.clearPlacement(state,selectedFlower)));
@@ -180,7 +180,7 @@ async function start(){
  const art=el("bouquetArt");art.addEventListener("pointerdown",beginDrag);art.addEventListener("pointermove",moveDrag);art.addEventListener("pointerup",e=>finishDrag(e,true));art.addEventListener("pointercancel",e=>finishDrag(e,false));art.addEventListener("lostpointercapture",e=>finishDrag(e,false));
  window.addEventListener("blur",()=>cancelDrag(true));document.addEventListener("visibilitychange",()=>{if(document.hidden)cancelDrag(true);});
  el("png").addEventListener("click",savePng);el("svg").addEventListener("click",saveSvg);
- el("reset").addEventListener("click",()=>{if(!confirm(copy.resetConfirm))return;cancelDrag();undoStack=[];redoStack=[];editMode=false;selectedFlower=null;state=M.fresh();persist();render();tell("A new garden is ready.");});
+ el("reset").addEventListener("click",()=>{if(!confirm(copy.resetConfirm))return;cancelDrag();undoStack=[];redoStack=[];paperPreview=false;editMode=false;selectedFlower=null;state=M.fresh();persist();render();tell("A new garden is ready.");});
  if(window.GardenScenes)window.GardenScenes.init(copy);
  el("openLetter").addEventListener("click",clearNotice);
  render();el("loading").hidden=true;el("app").hidden=false;if(!storageOK)tell("Local storage is unavailable or could not be read.");

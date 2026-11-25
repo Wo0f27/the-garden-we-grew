@@ -202,8 +202,8 @@ function placementFromHead(plant,item,x,y){
  const lean=num((rng(plant.seed)()-.5)*25),dx=x-item.x,dy=Math.min(-1,y-item.y);
  return validPlacement({angle:(Math.atan2(dx,-dy)-Math.atan2(lean,120))*180/Math.PI,scale:Math.hypot(dx,dy)/Math.hypot(lean,120)});
 }
-function bouquetSvg(s,title,{workbench=false}={}){
- const n=s.bouquet.length,wrapped=n>0&&s.wrapped;let plants="",extra="";
+function bouquetSvg(s,title,{workbench=false,previewWrap=false}={}){
+ const n=s.bouquet.length,wrapped=n>0&&(s.wrapped||(workbench&&previewWrap));let plants="",extra="";
  const paper=wraps[s.wrap]||wraps.ivory,ribbon=ribbons[s.ribbon]||ribbons.rose;
  const pattern=s.paperStyle==="botanical"?'<pattern id="paperPattern" width="23" height="28" patternUnits="userSpaceOnUse"><path d="M5 26Q14 15 17 2M10 19Q2 17 3 10Q11 10 10 19M14 11Q21 11 21 5Q14 4 14 11" fill="none" stroke="#756a55" stroke-width=".9" opacity=".27"/></pattern>':s.paperStyle==="stripe"?'<pattern id="paperPattern" width="13" height="13" patternUnits="userSpaceOnUse" patternTransform="rotate(23)"><path d="M0 0V13" stroke="#fffaf1" stroke-width="3" opacity=".5"/></pattern>':"";
  const defs='<defs><linearGradient id="paperShade" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fffaf0" stop-opacity=".55"/><stop offset=".48" stop-color="#fffaf0" stop-opacity=".06"/><stop offset="1" stop-color="#6e5c44" stop-opacity=".22"/></linearGradient><linearGradient id="ribbonShine" x2="0" y2="1"><stop stop-color="#fff8e8" stop-opacity=".45"/><stop offset="1" stop-color="#493c37" stop-opacity=".18"/></linearGradient>'+pattern+'</defs>';

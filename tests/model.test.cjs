@@ -50,3 +50,9 @@ console.log("Prototype 07 position bounds, exact head inverse, migration, export
  const svg=M.bouquetSvg(s,"QA");assert.equal((svg.match(/data-flower=/g)||[]).length,12);assert.ok(svg.includes('data-flower="rose~2"'));assert.ok(!/NaN|Infinity|undefined/.test(svg));
  const before=M.bouquetSnapshot(s);assert.equal(M.remove(s,"rose~2"),true);assert.equal(s.placements["rose~2"],undefined);M.restoreBouquet(s,before);assert.deepEqual(M.bouquetSnapshot(s),before);
 }
+
+// 8.15: workbench-only material preview and final wrapped geometry.
+{
+ const s=M.fresh();M.plant(s,"rose");for(let i=0;i<4;i++)M.water(s,"rose");M.add(s,"rose");s.wrap="blush";s.paperStyle="botanical";
+ const preview=M.bouquetSvg(s,"QA",{workbench:true,previewWrap:true});assert.ok(preview.includes('class="wrap-left"')&&preview.includes('#e3b6bd')&&preview.includes('id="paperPattern"'));assert.equal(s.wrapped,false);assert.ok(!M.bouquetSvg(s,"QA",{previewWrap:true}).includes('class="wrap-left"'));M.setWrapped(s,true);assert.ok(M.bouquetSvg(s,"QA",{workbench:true}).includes('class="wrap-tie"'));
+}

@@ -75,10 +75,11 @@ window.GARDEN_TEXT = {
   ribbonStyleLabel: "Ribbon design",
   paperStyles: {plain:"Plain paper", botanical:"Botanical print", stripe:"Fine stripes"},
   ribbonStyles: {bow:"Classic bow", long:"Trailing ribbon", knot:"Small knot"},
+  paperPreviewStatus: "Paper preview · tap Wrap my bouquet to finish",
   wrapButton: "Wrap my bouquet",
   unwrapButton: "Unwrap to rearrange",
   wrapReady: "Your bouquet is wrapped and ready to keep.",
-  wrapWaiting: "Choose your flowers and finishing touches, then wrap your bouquet.",
+  wrapWaiting: "Choose your paper and ribbon to preview them, then wrap your bouquet to finish.",
   wrapEmpty: "Add a flower to begin.",
   // Positioning and bouquet-only editing history (Prototype 07)
   editPosition: "Position the flowers",

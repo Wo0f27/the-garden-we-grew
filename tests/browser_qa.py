@@ -173,10 +173,25 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
         page.mouse.move(x,y); page.mouse.down(); page.mouse.move(x+30,y-20,steps=6); page.mouse.up()
     assert "rose" in saved(page)["placements"], "pointer move did not commit"
     click(page,"#editPosition")
+    page.locator("#wrap").select_option("blush")
     page.locator("#paperStyle").select_option("botanical")
     page.locator("#ribbonStyle").select_option("long")
+    assert not saved(page)["wrapped"]
+    expect(page.locator("#paperPreviewStatus")).to_be_visible()
+    expect(page.locator("#bouquetArt .wrap-left")).to_be_visible()
     click(page,"#wrapBouquet")
     assert saved(page)["wrapped"]
+    expect(page.locator("#paperPreviewStatus")).to_be_hidden()
+    for layer in ("wrap-back","wrap-left","wrap-right","wrap-tie"):
+        part=page.locator("#bouquetArt ."+layer)
+        expect(part).to_be_visible()
+        assert part.evaluate("""el=>{const b=el.getBoundingClientRect(),s=getComputedStyle(el);return b.width>3&&b.height>3&&s.opacity==="1"&&s.animationName==="none"}"""),layer
+    assert page.locator("#bouquetArt .wrap-left path").first.get_attribute("fill")=="#e3b6bd"
+    expect(page.locator("#bouquetArt #paperPattern")).to_have_count(1)
+    click(page,"#wrapBouquet")
+    expect(page.locator("#bouquetArt .wrap-left")).to_have_count(0)
+    click(page,"#wrapBouquet")
+    expect(page.locator("#bouquetArt .wrap-left")).to_be_visible()
     expect(page.locator("#editPosition")).to_be_disabled()
     page.locator("#bouquetArt").screenshot(path=str(OUT/(name+"-bouquet.png")),animations="disabled")
     with page.expect_download() as dl: click(page,"#svg")
