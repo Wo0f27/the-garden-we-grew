@@ -41,3 +41,25 @@
 
 /* 8.10: one visible chapter at a time; never transform an entire page. */
 .scene-navigation{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:0 0 20px}.scene-next{justify-content:center;margin:32px 0 0}.scene-leaving{animation:chapter-leave .24s ease-in both;pointer-events:none}.scene-entering{animation:chapter-enter .42s ease-out both}@keyframes chapter-leave{from{opacity:1}to{opacity:0}}@keyframes chapter-enter{from{opacity:0}to{opacity:1}}@media(prefers-reduced-motion:reduce){.scene-leaving,.scene-entering{animation:none!important}}
+
+/* 8.11: a fixed viewport app, not a scrolling document. Only dense chapter contents may scroll. */
+html{height:100%;overflow:hidden;overscroll-behavior:none;scroll-behavior:auto!important}
+body{position:fixed;inset:0;width:100%;height:100%;height:100dvh;margin:0;display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:none}
+body>.masthead{flex:0 0 auto;width:100%;margin:0 auto;padding-top:max(12px,env(safe-area-inset-top));padding-bottom:12px}
+#app{display:flex;flex-direction:column;flex:1 1 0;min-height:0;width:100%;margin:0 auto;padding-bottom:max(8px,env(safe-area-inset-bottom));overflow:hidden}
+#app>footer{flex:0 0 auto;margin-top:0;padding:5px 0;border-top:1px solid var(--line);gap:8px;font-size:.67rem;align-items:center}
+#app>footer p{margin:0;min-width:0;flex:1}
+#app>footer #reset{min-height:36px;font-size:.73rem;max-width:45%;flex:0 0 auto}
+#gateIntro{flex:1 1 0;min-height:0;min-width:0;overflow:auto;overscroll-behavior:contain;padding-block:clamp(10px,3vh,40px)}
+#gardenJourney{flex:1 1 0;min-height:0;min-width:0;overflow:hidden;position:relative}
+#gardenJourney>section{height:100%;min-height:0;min-width:0;margin:0;padding:16px 5px 22px;scroll-margin:0;border-top:0;outline-offset:-3px}
+#gardenJourney>#nursery,#gardenJourney>#greenhouse,#gardenJourney>#finalGarden{overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;scroll-padding-block:12px}
+#gardenJourney>#gardenPath,#gardenJourney>#glassEntrance{display:grid;grid-template-rows:auto minmax(0,450px) auto;align-content:center;justify-items:center;gap:clamp(8px,2vh,18px);overflow:hidden;padding:10px 5px 14px}
+#gardenPath .scene-heading,#glassEntrance .scene-heading{margin:0 auto;min-width:0}
+#gardenPath .scene-picture,#glassEntrance .scene-picture{display:flex;align-items:center;justify-content:center;width:100%;min-height:0;max-height:450px;align-self:center;height:100%;margin:0 auto}
+#gardenPath .scene-picture svg,#glassEntrance .scene-picture svg{width:100%;height:100%;max-height:100%;min-height:0;display:block}
+#gardenPath .scene-caption,#glassEntrance .scene-caption{margin:0;min-width:0}
+#finalGarden #gardenClosing{margin:28px 0 0}
+@media(max-width:750px){#app{padding-inline:12px}body>.masthead{padding-inline:12px}#gateIntro{gap:8px;align-content:center}#gateIntro .hero-art svg{max-height:clamp(110px,30dvh,245px)}#gateIntro h1{font-size:clamp(2rem,8vw,3.4rem)}#gateIntro .intro-description{margin:8px auto 14px}#gardenPath .scene-heading h2,#glassEntrance .scene-heading h2{font-size:clamp(1.5rem,6vw,2.25rem)}#gardenPath .scene-heading .kicker,#glassEntrance .scene-heading .kicker{margin-bottom:5px}#gardenPath .scene-heading p:last-child,#glassEntrance .scene-heading p:last-child{font-size:.85rem;line-height:1.4}#app>footer{flex-wrap:nowrap}#app>footer #reset{white-space:normal}}
+/* Extreme short/zoomed viewports: permit chapter-local access rather than clipping controls. */
+@media(max-height:420px){#gardenJourney>#gardenPath,#gardenJourney>#glassEntrance{grid-template-rows:auto minmax(110px,1fr) auto;align-content:start;overflow-y:auto;overscroll-behavior:contain}#gateIntro{align-content:start}}

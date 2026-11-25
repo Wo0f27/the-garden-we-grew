@@ -13,7 +13,7 @@ function revealScene(id){
  for(const key of SCENES){const scene=el(key);scene.classList.remove("scene-leaving","scene-entering");scene.hidden=key!==id;}
  el("gardenClosing").hidden=id!=="finalGarden";activeScene=id;
  const dest=el(id);if(!reduce.matches&&!document.hidden)dest.classList.add("scene-entering");
- dest.focus({preventScroll:true});dest.scrollIntoView({behavior:"instant",block:"start"});
+ dest.scrollTop=0;dest.focus({preventScroll:true});
 }
 function navigateScene(id){
  if(!gateOpen||gateWalking||pendingScene||!NEIGHBORS[activeScene]?.includes(id))return;
@@ -57,7 +57,7 @@ function showPath(){
  el("gateIntro").hidden=true;
  el("openGate").setAttribute("aria-expanded","true");
  const path=el("gardenPath");
- path.focus({preventScroll:true});path.scrollIntoView({behavior:"instant",block:"start"});
+ path.scrollTop=0;path.focus({preventScroll:true});
  setCamera(el("gateCamera"),GATE_WIDE);
 }
 function finishGate(){
@@ -108,7 +108,7 @@ function walkThrough(){
 }
 function openGate(){
  if(gateWalking)return;
- if(gateOpen){el("gardenPath").scrollIntoView({behavior:reduce.matches?"instant":"smooth"});return;}
+ if(gateOpen)return;
  gateWalking=true;
  const button=el("openGate"),camera=el("gateCamera");
  button.setAttribute("aria-disabled","true");

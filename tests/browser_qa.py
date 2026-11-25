@@ -22,6 +22,9 @@ def saved(page):
 def fit(page):
     sizes=page.evaluate("({view:document.documentElement.clientWidth,content:document.documentElement.scrollWidth})")
     assert sizes["content"] <= sizes["view"]+1, sizes
+    assert page.evaluate("()=>document.scrollingElement.scrollHeight <= document.scrollingElement.clientHeight + 1"), "document has vertical overflow"
+    page.evaluate("window.scrollTo(0,document.body.scrollHeight+1000)")
+    assert page.evaluate("window.scrollY")==0, "document scroll position changed"
 def click(page, selector):
     page.locator(selector).click()
 SCENES = ["gardenPath","nursery","glassEntrance","greenhouse","finalGarden"]
@@ -29,6 +32,10 @@ def only_scene(page,id):
     expect(page.locator("#"+id)).to_be_visible()
     for other in SCENES:
         if other != id: expect(page.locator("#"+other)).to_be_hidden()
+    assert page.evaluate("window.scrollY")==0, "chapter navigation scrolled the document"
+    if id in ("gardenPath","glassEntrance"):
+        assert page.locator("#"+id).evaluate("el=>el.scrollHeight<=el.clientHeight+1"), "scenic chapter has overflow"
+        expect(page.locator("#"+id+" .scene-caption")).to_be_in_viewport()
     if id=="finalGarden": expect(page.locator("#gardenClosing")).to_be_visible()
     else: expect(page.locator("#gardenClosing")).to_be_hidden()
 def go(page,source,destination):
@@ -75,7 +82,8 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     only_scene(page,"gardenPath")
     expect(page.locator("#gateIntro")).to_be_hidden()
     expect(page.locator("#distantGreenhouse")).to_be_visible()
-    page.evaluate("window.scrollTo(0,document.body.scrollHeight)")
+    page.evaluate("window.scrollTo(0,document.body.scrollHeight+1000)")
+    assert page.evaluate("window.scrollY")==0
     only_scene(page,"gardenPath")
     page.locator("#gardenPath .scene-picture").screenshot(path=str(OUT/(name+"-path.png")),animations="disabled")
     if reduce=="no-preference": expect(page.locator("#butterflyEffects .ambient-butterfly")).to_have_count(3)
