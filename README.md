@@ -37,3 +37,6 @@ The entrance doors open first (820ms), then the camera moves toward the path thr
 
 ## Continuous arrival (8.6)
 The gate walkthrough now hands off to a matching 3.6× close-up of the path before the garden is revealed. A 100ms pause and 1250ms eased pullback reveal the full 600×320 illustration. The entire sequence takes about 3.4 seconds, and only the two SVG viewBoxes change (no whole-page zoom). Repeated taps remain guarded until the pullback ends. Reduced motion and hidden-tab interruption settle directly to the normal full garden view. Physical-device rendering remains unverified.
+
+## Nursery guide (8.8)
+Peach appears below the six nursery pots with an original, locally rendered waving-cat SVG, speech bubble and optional greenhouse link. The link scrolls to the existing greenhouse exterior, not directly to the bouquet builder. No new growth requirements, saved state, third-party requests or changes to the gate, flowers, bouquet or letter. Browser regression includes guide presence, placement and navigation. Physical-device visual confirmation remains pending.

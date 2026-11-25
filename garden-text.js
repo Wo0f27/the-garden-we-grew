@@ -15,6 +15,8 @@ window.GARDEN_TEXT = {
   pathReady: "The garden is waiting for its first bloom.",
   pathGrown: "{count} of {total} flowers are in bloom along the path.",
   visitNursery: "Visit the nursery",
+  peachNurseryInvite: "Come on, my love! Let’s head to the greenhouse and see what we can make with your flowers.",
+  peachGreenhouseButton: "Let’s go to the greenhouse",
   glassKicker: "Among the glass and vines",
   glassTitle: "A greenhouse of little treasures",
   glassIntro: "Bring the flowers you have grown inside and arrange them into something of your own.",
