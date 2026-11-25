@@ -35,3 +35,17 @@
 .stable-art .ambient-petal{top:32%;opacity:.68}
 .stable-art .ambient-firefly{opacity:.7}
 .stable-art button:hover,.stable-art .button:hover{filter:none}
+
+/* 08.4 — mobile raster rendering and flat, non-composited document flow. */
+.stable-art body{background:#f5edde}
+.stable-art *, .stable-art *::before,.stable-art *::after{box-shadow:none!important;text-shadow:none!important;animation:none!important;transition:none!important;filter:none!important}
+.stable-art .scene-effects{display:none}
+.stable-art .scene-picture,.stable-art .florist-room{border-radius:8px;overflow:visible;background:#e7eadc}
+.stable-art .plant-card,.stable-art .plant-art,.stable-art .letter-paper{background:#fffaf0}
+.stable-art .plant-card,.stable-art .bouquet-paper,.stable-art .closing{border-radius:12px}
+.stable-art .raster-art{display:block;max-width:100%;width:100%;height:auto;object-fit:contain}
+.stable-art .hero-art img{max-height:245px}
+.stable-art .scene-picture img{max-height:450px}
+.stable-art .bouquet-art img{max-height:390px}
+.stable-art .plant-art img,.stable-art .tray-art img{height:100%;max-height:100%;width:100%}
+.stable-art .notice{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);transform:none;padding:0;left:0;bottom:auto}

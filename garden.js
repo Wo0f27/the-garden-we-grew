@@ -9,7 +9,7 @@ document.documentElement.classList.toggle("stable-art",stableArt);
 function paintPot(art,plant){
  const markup=M.potSvg(plant);
  if(!stableArt){art.innerHTML=markup;return;}
- const img=document.createElement("img");img.alt="";img.setAttribute("aria-hidden","true");img.width=180;img.height=227;img.decoding="sync";img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(markup);art.replaceChildren(img);
+ const img=window.GardenDisplay.image(markup,270,341);img.setAttribute("aria-hidden","true");art.replaceChildren(img);
 }
 let copy,state=M.fresh(),noticeTimer,storageOK=true;
 let editMode=false,selectedFlower=null,drag=null,undoStack=[],redoStack=[], nurserySignature="",traySignature="",arrangementSignature="",pngBusy=false;
@@ -84,7 +84,7 @@ function renderPositionControls(){
  el("undoBouquet").disabled=!undoStack.length;el("redoBouquet").disabled=!redoStack.length;
 }
 function updatePreview(){
- const art=el("bouquetArt");art.classList.remove("wrap-sequence");art.innerHTML=M.bouquetSvg(state,copy.brand);renderPositionControls();addHandles();
+ const art=el("bouquetArt");art.classList.remove("wrap-sequence");renderPositionControls();const markup=M.bouquetSvg(state,copy.brand);if(stableArt&&!editMode)art.replaceChildren(window.GardenDisplay.image(markup,600,660,copy.brand));else art.innerHTML=markup;addHandles();
 }
 function cancelDrag(restore=false){
  if(!drag)return;const active=drag;drag=null;
@@ -189,7 +189,7 @@ async function start(){
  el("reset").addEventListener("click",()=>{if(!confirm(copy.resetConfirm))return;cancelDrag();undoStack=[];redoStack=[];editMode=false;selectedFlower=null;state=M.fresh();persist();render();tell("A new garden is ready.");});
  if(window.GardenScenes)window.GardenScenes.init(copy);
  el("openLetter").addEventListener("click",clearNotice);
- render();el("loading").hidden=true;el("app").hidden=false;if(!storageOK)tell("Local storage is unavailable or could not be read.");
+ render();if(stableArt)window.GardenScenes.flatten();el("loading").hidden=true;el("app").hidden=false;if(!storageOK)tell("Local storage is unavailable or could not be read.");
  }catch(err){el("loading").textContent="The garden text could not be loaded. Please refresh this page. If you edited garden-text.js, check its quotation marks and commas.";console.error(err);}
 }
 start();

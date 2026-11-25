@@ -2,7 +2,7 @@
    Ambient CSS motion is adapted from yZhanWeather (see vendor/yZhanWeather/LICENSE). */
 (function(){
 "use strict";
-const M=window.GardenModel,L=window.GardenLandscape,el=id=>document.getElementById(id);
+const M=window.GardenModel,L=window.GardenLandscape,D=window.GardenDisplay,el=id=>document.getElementById(id)||D.get(id);
 const reduce=window.matchMedia("(prefers-reduced-motion: reduce)");
 const stable=()=>document.documentElement.classList.contains("stable-art");
 let initialized=false, gateOpen=false, letterOpen=false, letterOpening=false, letterTimer=0, letterReady=false, gateTimer=0, lastSignature="", lastBloomCount=-1, copy;
@@ -26,14 +26,14 @@ function ambient(target,kind,num){
 }
 function motion(){
  for(const [id,kind,count] of [["pathEffects","petal",9],["butterflyEffects","butterfly",3],["finalEffects","firefly",9]]){
-  const target=el(id);if(reduce.matches)target.replaceChildren();else ambient(target,kind,count);
+  const target=el(id);if(reduce.matches||stable())target.replaceChildren();else ambient(target,kind,count);
  }
 }
 function openGate(){
- if(gateOpen){el("gardenPath").scrollIntoView({behavior:(reduce.matches||stable())?"instant":"smooth"});return;}
+ if(gateOpen){if(!stable())el("gardenPath").scrollIntoView({behavior:reduce.matches?"instant":"smooth"});return;}
  gateOpen=true;el("openGate").setAttribute("aria-expanded","true");el("openGate").textContent=copy.gateOpened;
  document.body.classList.add("gate-open");el("gardenJourney").hidden=false;
- clearTimeout(gateTimer);gateTimer=setTimeout(()=>{el("gardenPath").focus({preventScroll:true});el("gardenPath").scrollIntoView({behavior:(reduce.matches||stable())?"instant":"smooth"});},reduce.matches||stable()?0:650);
+ if(stable()){el("gateLeft").setAttribute("visibility","hidden");el("gateRight").setAttribute("visibility","hidden");D.refreshAll();}else{clearTimeout(gateTimer);gateTimer=setTimeout(()=>{el("gardenPath").focus({preventScroll:true});el("gardenPath").scrollIntoView({behavior:reduce.matches?"instant":"smooth"});},reduce.matches?0:650);}
  motion();
 }
 function closeLetter(restoreFocus=false){
@@ -50,11 +50,11 @@ function revealLetter(){
  el("letterStation").classList.remove("letter-opening");el("letterStation").classList.add("letter-open");
  const button=el("openLetter");button.removeAttribute("aria-disabled");button.setAttribute("aria-expanded","true");
  el("envelopeLabel").textContent=copy.letterOpened;
- const paper=el("gardenLetter");paper.hidden=false;paper.focus({preventScroll:true});paper.scrollIntoView({block:"nearest",behavior:(reduce.matches||stable())?"instant":"smooth"});
+ const paper=el("gardenLetter");paper.hidden=false;paper.focus({preventScroll:true});if(!stable())paper.scrollIntoView({block:"nearest",behavior:reduce.matches?"instant":"smooth"});
 }
 function openLetter(){
  if(!letterReady||letterOpening)return;
- if(letterOpen){el("gardenLetter").focus({preventScroll:true});el("gardenLetter").scrollIntoView({block:"nearest",behavior:(reduce.matches||stable())?"instant":"smooth"});return;}
+ if(letterOpen){el("gardenLetter").focus({preventScroll:true});if(!stable())el("gardenLetter").scrollIntoView({block:"nearest",behavior:reduce.matches?"instant":"smooth"});return;}
  letterOpening=true;el("openLetter").setAttribute("aria-disabled","true");el("envelopeLabel").textContent=copy.letterOpening;
  el("letterStation").classList.add("letter-opening");
  if(reduce.matches||stable()||document.hidden)revealLetter();else letterTimer=setTimeout(revealLetter,900);
@@ -93,6 +93,8 @@ function update(state,config,grown){
  el("letterProgress").textContent=config.letterProgress.replace("{count}",grown).replace("{total}",M.species.length);
  el("finalBloomMeter").innerHTML=M.species.map((id,i)=>'<span class="final-bloom'+(state.plants[id]?.stage===4?' bloomed':'')+'"><svg viewBox="0 0 24 24"><path d="M12 9C3 2 1 13 8 13C1 20 12 24 12 16C19 24 26 14 16 13C23 4 12 2 12 9Z" fill="currentColor"/><circle cx="12" cy="13" r="2.3" fill="#d2ad72"/></svg></span>').join("");
  if(!ready)closeLetter();else if(!letterOpen&&!letterOpening)el("envelopeLabel").textContent=config.openLetter;
+ if(stable())D.refreshAll();
 }
-window.GardenScenes={init,update};
+function flatten(){for(const container of document.querySelectorAll(".hero-art,.scene-picture,.florist-room,.letter-botanical"))D.flatten(container);}
+window.GardenScenes={init,update,flatten};
 })();

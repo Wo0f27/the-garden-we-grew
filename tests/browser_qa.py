@@ -41,7 +41,10 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     click(page,"#openGate")
     expect(page.locator("#gardenJourney")).to_be_visible()
     assert page.locator("#gardenJourney").evaluate("(el)=>getComputedStyle(el).animationName")== "none"
-    if reduce=="no-preference":
+    if mobile:
+        assert page.locator(".scene-picture > svg,.hero-art > svg,.florist-room > svg").count()==0
+        expect(page.locator("#butterflyEffects .ambient-butterfly")).to_have_count(0)
+    elif reduce=="no-preference":
         expect(page.locator("#butterflyEffects .ambient-butterfly")).to_have_count(3)
         page.wait_for_timeout(750)
     expect(page.locator("#openLetter")).to_be_disabled()
@@ -50,6 +53,7 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
         expect(page.locator("#plants .plant-art img")).to_have_count(6)
         page.wait_for_function("Array.from(document.querySelectorAll('#plants .plant-art img')).every(i=>i.complete&&i.naturalWidth>0)")
         assert page.locator("#plants .plant-art svg").count()==0
+        page.wait_for_function("Array.from(document.querySelectorAll('.scene-picture > img,.hero-art > img,.florist-room > img,#plants .plant-art img')).every(i=>i.complete&&i.naturalWidth>0&&i.src.startsWith('data:image/png'))", timeout=30000)
     if reduce=="no-preference": page.wait_for_timeout(1000)
     expect(page.locator("#notice")).to_be_empty(timeout=6000)
     assert page.locator("#plants .plant-card").evaluate_all("""cards=>cards.every(card=>{const art=card.querySelector(".plant-art").getBoundingClientRect(),svg=card.querySelector(".plant-art svg,.plant-art img").getBoundingClientRect(),name=card.querySelector("h3").getBoundingClientRect();return svg.bottom<=art.bottom+1&&svg.top>=art.top-1&&art.bottom<=name.top+1})"""), "nursery illustration overlaps heading"
@@ -90,6 +94,7 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     click(page,"#wrapBouquet")
     assert saved(page)["wrapped"]
     expect(page.locator("#editPosition")).to_be_disabled()
+    if mobile: page.wait_for_function("document.querySelector('#bouquetArt img')?.src.startsWith('data:image/png')")
     page.locator("#bouquetArt").screenshot(path=str(OUT/(name+"-bouquet.png")),animations="disabled")
     with page.expect_download() as dl: click(page,"#svg")
     svg_file=OUT/(name+".svg"); dl.value.save_as(str(svg_file))
