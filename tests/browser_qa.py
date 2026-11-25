@@ -58,6 +58,8 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     expect(page.locator("#openGate")).not_to_have_attribute("aria-disabled","true")
     expect(page.locator("#openGate")).to_have_attribute("aria-expanded","true")
     expect(page.locator("#gateCamera")).to_have_attribute("viewBox","0 0 360 330")
+    expect(page.locator("#distantGreenhouse")).to_be_visible()
+    assert page.locator("#distantGreenhouse").evaluate("""el=>{const p=new DOMPoint(300,241).matrixTransform(el.transform.baseVal.consolidate().matrix);return Math.abs(p.x-348)<.01&&Math.abs(p.y-172)<.01}"""), "greenhouse threshold does not meet path endpoint"
     assert page.locator("#gardenJourney").evaluate("(el)=>getComputedStyle(el).animationName")=="none"
     fit(page)
     if reduce=="no-preference":
