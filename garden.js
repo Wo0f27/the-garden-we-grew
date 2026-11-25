@@ -4,7 +4,8 @@
 const M=window.GardenModel, el=id=>document.getElementById(id), KEY="the-garden-we-grew-prototype-v1";
 let copy,state=M.fresh(),noticeTimer,storageOK=true;
 let editMode=false,selectedFlower=null,drag=null,undoStack=[],redoStack=[], nurserySignature="",traySignature="",arrangementSignature="",pngBusy=false;
-function tell(message){el("notice").textContent=message;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>{el("notice").textContent="";},3500);}
+function clearNotice(){clearTimeout(noticeTimer);el("notice").textContent="";}
+function tell(message){clearNotice();el("notice").textContent=message;noticeTimer=setTimeout(clearNotice,3500);}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch{storageOK=false;tell("This browser could not save the garden. Keep this tab open.");}}
 function loadCopy(){
  return new Promise((resolve,reject)=>{const script=document.createElement("script");script.src="garden-text.js?v="+Date.now();let timeout=setTimeout(()=>{script.remove();reject(new Error("Text load timed out"));},7000);
@@ -178,6 +179,7 @@ async function start(){
  el("png").addEventListener("click",savePng);el("svg").addEventListener("click",saveSvg);
  el("reset").addEventListener("click",()=>{if(!confirm(copy.resetConfirm))return;cancelDrag();undoStack=[];redoStack=[];editMode=false;selectedFlower=null;state=M.fresh();persist();render();tell("A new garden is ready.");});
  if(window.GardenScenes)window.GardenScenes.init(copy);
+ el("openLetter").addEventListener("click",clearNotice);
  render();el("loading").hidden=true;el("app").hidden=false;if(!storageOK)tell("Local storage is unavailable or could not be read.");
  }catch(err){el("loading").textContent="The garden text could not be loaded. Please refresh this page. If you edited garden-text.js, check its quotation marks and commas.";console.error(err);}
 }

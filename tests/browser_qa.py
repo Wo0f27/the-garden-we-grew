@@ -37,8 +37,14 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     page.screenshot(path=str(OUT/(name+"-entrance.png")))
     click(page,"#openGate")
     expect(page.locator("#gardenJourney")).to_be_visible()
+    if reduce=="no-preference":
+        expect(page.locator("#butterflyEffects .ambient-butterfly")).to_have_count(3)
+        page.wait_for_timeout(750)
     expect(page.locator("#openLetter")).to_be_disabled()
     for id in SPECIES: plant(page,id)
+    if reduce=="no-preference": page.wait_for_timeout(1000)
+    page.locator("#gardenPath .scene-picture").screenshot(path=str(OUT/(name+"-path.png")),animations="disabled")
+    page.locator("#plants").screenshot(path=str(OUT/(name+"-nursery.png")),animations="disabled")
     expect(page.locator("#openLetter")).to_be_enabled()
     assert page.locator("#progress").evaluate("(el)=>el.value")==6
     fit(page)
@@ -87,6 +93,7 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     snapshot=saved(page)
     click(page,"#openLetter")
     expect(page.locator("#gardenLetter")).to_be_visible()
+    expect(page.locator("#notice")).to_be_empty()
     page.locator("#gardenLetter").screenshot(path=str(OUT/(name+"-letter.png")),animations="disabled")
     click(page,"#closeLetter")
     expect(page.locator("#gardenLetter")).to_be_hidden()
@@ -109,6 +116,7 @@ try:
         browser=p.chromium.launch(headless=True, **({"executable_path":chrome} if chrome else {}))
         for name,w,h,mobile in [("desktop",1280,900,False),("mobile",390,844,True),("narrow",320,740,True)]:
             journey(browser,name,w,h,mobile)
+        journey(browser,"normal-motion",390,844,True,"no-preference")
         browser.close()
     print("Browser QA PASS; screenshots and exports:",OUT,flush=True)
 finally:

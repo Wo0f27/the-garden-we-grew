@@ -13,3 +13,6 @@
 @media(max-width:750px){.intro,.bouquet-workspace{grid-template-columns:minmax(0,1fr)}.masthead{gap:6px}.edition{font-size:.63rem}.scene-picture,.florist-room{box-shadow:0 0 0 2px #fff7e7,0 8px 22px #53644714}.plant-card .action{padding-inline:8px}.position-grid,.history-controls{gap:8px}.bouquet-controls{padding-inline:1px}.letter-actions>*{min-width:0}footer{flex-wrap:wrap}}
 @media(max-width:360px){.masthead .edition{margin-left:0}.position-panel{padding-inline:8px}.arrangement-row{gap:4px}.arrangement-row button{padding-inline:6px}.letter-paper{padding-inline:19px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* Status announcements never intercept interaction with underlying controls. */
+.notice{pointer-events:none}
