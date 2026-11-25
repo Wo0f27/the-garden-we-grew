@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5edde">
 <title>The Garden We Grew</title>
-<link rel="stylesheet" href="styles/garden.css?v=8.8">
+<link rel="stylesheet" href="styles/garden.css?v=8.9">
 <link rel="stylesheet" href="styles/scenery.css?v=8.6">
 <link rel="stylesheet" href="styles/greenhouse.css?v=7">
 <link rel="stylesheet" href="styles/finale.css?v=6">
@@ -16,7 +16,7 @@
 <script defer src="garden.js?v=8.1"></script>
 </head>
 <body>
-<header class="masthead"><span class="monogram" aria-hidden="true">✿</span><span data-copy="brand">The Garden We Grew</span><span class="edition">Prototype 08.8</span></header>
+<header class="masthead"><span class="monogram" aria-hidden="true">✿</span><span data-copy="brand">The Garden We Grew</span><span class="edition">Prototype 08.9</span></header>
 <main id="app" hidden>
 <section class="intro">
 <div class="intro-copy"><p class="kicker" data-copy="eyebrow"></p><h1 data-copy="title"></h1><p class="intro-description" data-copy="intro"></p><button type="button" id="openGate" class="button primary" aria-controls="gardenPath" aria-expanded="false" data-copy="enter"></button></div>
@@ -52,21 +52,10 @@
 <div class="progress"><span id="progressText"></span><progress id="progress" value="0" max="6" aria-label="Flowers in bloom"></progress></div>
 <div id="plants" class="plant-grid"></div>
 <div id="peachNursery" class="nursery-guide">
-  <svg class="nursery-peach" viewBox="0 0 160 150" role="img" aria-label="Peach waving a paw" xmlns="http://www.w3.org/2000/svg">
-    <ellipse cx="78" cy="139" rx="49" ry="6" fill="#a08b72" opacity=".15"/>
-    <g stroke="#795c50" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M111 111Q143 99 141 121Q138 136 117 132" fill="#fff8ee"/>
-      <path d="M47 98Q36 113 38 131Q41 140 59 136L70 136Q81 142 92 136L106 136Q120 139 121 128L115 97Z" fill="#fff8ee"/>
-      <path d="M49 108Q37 115 34 105Q30 96 25 92Q17 85 21 78Q26 71 34 79L49 94" fill="#fff8ee"/>
-      <path d="M41 42Q31 13 43 12Q54 12 70 29Q83 26 94 30Q111 11 122 16Q130 23 120 47Q137 62 131 82Q124 105 81 107Q39 107 29 84Q21 64 41 42Z" fill="#fff8ee"/>
-      <path d="M44 22L61 34L46 38Z M119 25L103 35L116 41Z" fill="#eab0bd" stroke="none"/>
-      <ellipse cx="59" cy="69" rx="3.3" ry="4.5" fill="#795c50" stroke="none"/><ellipse cx="104" cy="69" rx="3.3" ry="4.5" fill="#795c50" stroke="none"/>
-      <path d="M78 78Q81 75 84 78M81 78Q78 86 73 81M81 78Q84 86 89 81" fill="none" stroke-width="2.3"/>
-      <ellipse cx="47" cy="80" rx="9" ry="4" fill="#efb0b6" opacity=".8" stroke="none"/><ellipse cx="116" cy="80" rx="9" ry="4" fill="#efb0b6" opacity=".8" stroke="none"/>
-      <path d="M25 64L17 59M21 70L11 70" fill="none" stroke="#c68b9a" stroke-width="2.5"/>
-    </g>
-    <path d="M143 37Q133 24 128 33Q124 42 143 51Q161 39 155 32Q149 26 143 37Z" fill="#dda3ae"/>
-  </svg>
+  <picture class="nursery-peach">
+    <source media="(prefers-reduced-motion: reduce)" srcset="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+    <img id="peachSticker" src="https://media.tenor.com/ZQ7fGn4s3YwAAAAj/peach-goma-paw-paw.gif" alt="Peach raising her paw" width="238" height="202" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.hidden=true">
+  </picture>
   <div class="nursery-speech"><p class="nursery-guide-name">Peach</p><p data-copy="peachNurseryInvite"></p><a id="visitGreenhouse" class="button secondary" href="#glassEntrance" data-copy="peachGreenhouseButton"></a></div>
 </div>
 </section>

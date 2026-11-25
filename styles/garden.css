@@ -4,3 +4,6 @@
 
 /* 8.8: Peach's invitation below the nursery, outside the dynamic plant grid. */
 .nursery-guide{display:flex;align-items:center;justify-content:center;gap:18px;max-width:620px;margin:36px auto 0;padding:0 6px}.nursery-peach{display:block;width:clamp(94px,24vw,154px);height:auto;flex:none}.nursery-speech{position:relative;min-width:0;background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px 20px;box-shadow:var(--shadow)}.nursery-speech:before{content:"";position:absolute;left:-7px;top:42%;width:12px;height:12px;background:var(--paper);border-left:1px solid var(--line);border-bottom:1px solid var(--line);transform:rotate(45deg)}.nursery-speech p{margin:0 0 12px}.nursery-speech .nursery-guide-name{font:italic 1.15rem Georgia,serif;color:#a76a7c;margin-bottom:5px}.nursery-speech .button{max-width:100%}#glassEntrance{scroll-margin-top:20px}@media(max-width:420px){.nursery-guide{gap:12px;margin-top:25px}.nursery-speech{padding:13px}.nursery-speech .button{font-size:.8rem;padding:9px 10px}}
+
+/* 8.9: original Peach sticker; preserve the speech and navigation if media is unavailable. */
+.nursery-peach img{display:block;width:100%;height:auto;object-fit:contain}@media(prefers-reduced-motion:reduce){.nursery-peach{display:none}.nursery-speech:before{display:none}}

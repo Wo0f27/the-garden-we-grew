@@ -2,13 +2,15 @@
 from pathlib import Path
 from functools import partial
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
-import os, threading, tempfile, json, struct
+import os, threading, tempfile, json, struct, base64
 from playwright.sync_api import sync_playwright, expect
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = Path(os.environ.get("GARDEN_QA_OUTPUT", tempfile.mkdtemp(prefix="garden-qa-")))
 OUT.mkdir(parents=True, exist_ok=True)
 KEY = "the-garden-we-grew-prototype-v1"
+PEACH_GIF = "https://media.tenor.com/ZQ7fGn4s3YwAAAAj/peach-goma-paw-paw.gif"
+PEACH_FIXTURE = base64.b64decode("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
 SPECIES = ["rose","peony","tulip","daisy","sunflower","gypsophila"]
 class Handler(SimpleHTTPRequestHandler):
     def log_message(self, *args): pass
@@ -31,6 +33,8 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     errors=[]; requests=[]
     page.on("pageerror",lambda e:errors.append(str(e)))
     page.on("request",lambda req:requests.append(req.url))
+    # Isolate the single intentional sticker request; this does not verify the CDN animation.
+    page.route(PEACH_GIF,lambda route:route.fulfill(status=200,content_type="image/gif",body=PEACH_FIXTURE))
     page.goto(url,wait_until="networkidle")
     expect(page.locator("#app")).to_be_visible()
     fit(page)
@@ -60,6 +64,12 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     expect(page.locator("#gateCamera")).to_have_attribute("viewBox","0 0 360 330")
     expect(page.locator("#distantGreenhouse")).to_be_visible()
     expect(page.locator("#peachNursery")).to_be_visible()
+    expect(page.locator("#peachSticker")).to_have_attribute("src",PEACH_GIF)
+    if reduce=="no-preference":
+        page.locator("#peachSticker").scroll_into_view_if_needed()
+        page.wait_for_function("()=>document.querySelector('#peachSticker').naturalWidth>0")
+    else:
+        expect(page.locator(".nursery-peach")).to_be_hidden()
     expect(page.locator("#visitGreenhouse")).to_have_attribute("href","#glassEntrance")
     assert page.locator("#peachNursery").evaluate('el=>el.previousElementSibling.id==="plants"&&el.closest("#nursery")!==null')
     click(page,"#visitGreenhouse")
@@ -161,8 +171,9 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
         expect(page.locator("#openGate")).not_to_have_attribute("aria-disabled","true")
         expect(page.locator("#gardenJourney")).to_be_visible()
     assert not errors,errors
-    assert all(u.startswith(url) or u.startswith(("blob:","data:")) for u in requests),requests
-    print(json.dumps({"profile":name,"viewport":[width,height],"journey":"PASS","png_bytes":len(png),"svg_bytes":len(svg.encode()),"page_errors":len(errors),"external_requests":0}),flush=True)
+    assert all(u.startswith(url) or u.startswith(("blob:","data:")) or u==PEACH_GIF for u in requests),requests
+    if reduce=="reduce": assert PEACH_GIF not in requests,requests
+    print(json.dumps({"profile":name,"viewport":[width,height],"journey":"PASS","png_bytes":len(png),"svg_bytes":len(svg.encode()),"page_errors":len(errors),"external_requests":sum(u==PEACH_GIF for u in requests),"sticker_request_mocked":True}),flush=True)
     context.close()
 try:
     with sync_playwright() as p:
