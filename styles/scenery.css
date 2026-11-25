@@ -4,7 +4,7 @@
 #gateLeft,#gateRight{transform-box:fill-box;transition:transform .78s cubic-bezier(.25,.75,.24,1),opacity .7s ease;transform-origin:center}
 .gate-open #gateLeft{transform:translateX(-18px) scaleX(.18);transform-origin:left center;opacity:.75}
 .gate-open #gateRight{transform:translateX(18px) scaleX(.18);transform-origin:right center;opacity:.75}
-#gardenJourney:not([hidden]){animation:journey-arrive .6s ease both}
+/* Do not animate or composite the entire long scrolling garden. */
 @keyframes journey-arrive{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .scene{margin:0 0 38px;padding:25px 0 0;border-top:1px solid var(--line);scroll-margin-top:12px}
 .scene-heading{text-align:center;max-width:600px;margin:0 auto 20px}.scene-heading p:last-child{color:var(--muted);max-width:35em;margin:auto}

@@ -27,3 +27,6 @@ Prototype 08 uses original CSS and controller refinements. Playwright is a test-
 | Interact.js, Sparkle, tsParticles, Howler.js, StPageFlip and other recorded candidates | Retain as alternatives; disposition documented in private continuity notebook |
 
 The complete 22-repository and 6-asset register remains in the owner's separate project notebook. Before adopting any upstream material, record its exact pinned source, license text, asset provenance, attribution, changes and tests. Do not import unverified artwork.
+
+### 08.3 compatibility correction
+The previously adapted Organic Flow SVG turbulence/displacement filter is disabled/removed from active rendering after reported physical Android corruption; original translucent pigment shapes remain. Attribution and exact license retained. No new upstream source. yZhanWeather ambient animation remains active on desktop, with static fallback on mobile. All other integrations retained.

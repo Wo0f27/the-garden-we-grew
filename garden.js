@@ -2,6 +2,15 @@
 (function(){
 "use strict";
 const M=window.GardenModel, el=id=>document.getElementById(id), KEY="the-garden-we-grew-prototype-v1";
+// Conservative display path on handheld browsers; ?safe=1 also works on desktop.
+// This does not change the model, storage, or standalone bouquet export.
+const stableArt=new URLSearchParams(location.search).get("safe")==="1"||/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||window.matchMedia("(max-width: 750px), (pointer: coarse)").matches;
+document.documentElement.classList.toggle("stable-art",stableArt);
+function paintPot(art,plant){
+ const markup=M.potSvg(plant);
+ if(!stableArt){art.innerHTML=markup;return;}
+ const img=document.createElement("img");img.alt="";img.setAttribute("aria-hidden","true");img.width=180;img.height=227;img.decoding="sync";img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(markup);art.replaceChildren(img);
+}
 let copy,state=M.fresh(),noticeTimer,storageOK=true;
 let editMode=false,selectedFlower=null,drag=null,undoStack=[],redoStack=[], nurserySignature="",traySignature="",arrangementSignature="",pngBusy=false;
 function clearNotice(){clearTimeout(noticeTimer);el("notice").textContent="";}
@@ -18,7 +27,7 @@ function button(label,action,id,cls=""){const b=node("button",cls,label);b.type=
 // action; interrupted or reduced-motion animations cannot lose progress.
 function growPot(art,plant){
  const end=plant.stage;
- if(end<1||window.matchMedia("(prefers-reduced-motion: reduce)").matches||document.hidden||typeof requestAnimationFrame!=="function")return;
+ if(stableArt||end<1||window.matchMedia("(prefers-reduced-motion: reduce)").matches||document.hidden||typeof requestAnimationFrame!=="function")return;
  const duration=end===4?950:620;
  const initial=end-1;
  let first=null,last=-Infinity;
@@ -115,7 +124,7 @@ function render(focus){
  if(nurserySignature!==signature){nurserySignature=signature;root.replaceChildren();
  for(const id of M.species){
   const p=state.plants[id], c=copy.flowers[id], stage=p?.stage??-1;
-  const card=node("article","plant-card");const art=node("div","plant-art");art.innerHTML=M.potSvg(p);if(focus?.id===id&&focus.action==="plant")art.classList.add("growth-reveal");card.append(art,node("h3","",c.name),node("div","species-meaning",c.meaning),node("div","stage",stage<0?"Ready to plant":copy.stages[stage]));
+  const card=node("article","plant-card");const art=node("div","plant-art");paintPot(art,p);if(!stableArt&&focus?.id===id&&focus.action==="plant")art.classList.add("growth-reveal");card.append(art,node("h3","",c.name),node("div","species-meaning",c.meaning),node("div","stage",stage<0?"Ready to plant":copy.stages[stage]));
   const meter=node("div","stage-meter");meter.setAttribute("aria-hidden","true");for(let i=0;i<5;i++)meter.append(node("i",i<=stage?"filled":""));card.append(meter);
   if(stage===4)card.append(node("p","plant-message",c.message));
   const action=stage<0?"plant":stage<4?"water":"add", added=state.bouquet.includes(id);
@@ -125,11 +134,11 @@ function render(focus){
  if(window.GardenScenes)window.GardenScenes.update(state,copy,grown);
  el("progressText").textContent=grown+" of "+M.species.length+" flowers in bloom";el("progress").max=M.species.length;el("progress").value=grown;
  const bouquetArt=el("bouquetArt");updatePreview();
- if(focus?.action==="wrap"&&state.wrapped){void bouquetArt.offsetWidth;bouquetArt.classList.add("wrap-sequence");}
+ if(!stableArt&&focus?.action==="wrap"&&state.wrapped){void bouquetArt.offsetWidth;bouquetArt.classList.add("wrap-sequence");}
  const tray=el("flowerTray");if(traySignature!==signature){traySignature=signature;tray.replaceChildren();
  for(const id of M.species){const p=state.plants[id],selected=state.bouquet.includes(id),ready=p?.stage===4;
   const b=button("", "add",id,"tray-flower");b.disabled=!ready||selected;
-  const preview=node("div","tray-art");preview.innerHTML=M.potSvg(p);b.append(preview,node("span","tray-name",copy.flowers[id].name),node("small","tray-state",selected?copy.traySelected:ready?copy.trayAdd:copy.trayGrowing));
+  const preview=node("div","tray-art");paintPot(preview,p);b.append(preview,node("span","tray-name",copy.flowers[id].name),node("small","tray-state",selected?copy.traySelected:ready?copy.trayAdd:copy.trayGrowing));
   b.setAttribute("aria-label",copy.flowers[id].name+" — "+(selected?copy.traySelected:ready?copy.trayAdd:copy.trayGrowing));tray.append(b);
  }}
  el("paperStyle").value=state.paperStyle;el("ribbonStyle").value=state.ribbonStyle;

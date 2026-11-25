@@ -4,6 +4,7 @@
 "use strict";
 const M=window.GardenModel,L=window.GardenLandscape,el=id=>document.getElementById(id);
 const reduce=window.matchMedia("(prefers-reduced-motion: reduce)");
+const stable=()=>document.documentElement.classList.contains("stable-art");
 let initialized=false, gateOpen=false, letterOpen=false, letterOpening=false, letterTimer=0, letterReady=false, gateTimer=0, lastSignature="", lastBloomCount=-1, copy;
 const base=(id,stage)=>({id,seed:M.seedFor(id),stage});
 function group(x,y,scale,markup){return '<g transform="translate('+x+' '+y+') scale('+scale+')">'+markup+'</g>';}
@@ -29,10 +30,10 @@ function motion(){
  }
 }
 function openGate(){
- if(gateOpen){el("gardenPath").scrollIntoView({behavior:reduce.matches?"instant":"smooth"});return;}
+ if(gateOpen){el("gardenPath").scrollIntoView({behavior:(reduce.matches||stable())?"instant":"smooth"});return;}
  gateOpen=true;el("openGate").setAttribute("aria-expanded","true");el("openGate").textContent=copy.gateOpened;
  document.body.classList.add("gate-open");el("gardenJourney").hidden=false;
- clearTimeout(gateTimer);gateTimer=setTimeout(()=>{el("gardenPath").focus({preventScroll:true});el("gardenPath").scrollIntoView({behavior:reduce.matches?"instant":"smooth"});},reduce.matches?0:650);
+ clearTimeout(gateTimer);gateTimer=setTimeout(()=>{el("gardenPath").focus({preventScroll:true});el("gardenPath").scrollIntoView({behavior:(reduce.matches||stable())?"instant":"smooth"});},reduce.matches||stable()?0:650);
  motion();
 }
 function closeLetter(restoreFocus=false){
@@ -49,14 +50,14 @@ function revealLetter(){
  el("letterStation").classList.remove("letter-opening");el("letterStation").classList.add("letter-open");
  const button=el("openLetter");button.removeAttribute("aria-disabled");button.setAttribute("aria-expanded","true");
  el("envelopeLabel").textContent=copy.letterOpened;
- const paper=el("gardenLetter");paper.hidden=false;paper.focus({preventScroll:true});paper.scrollIntoView({block:"nearest",behavior:reduce.matches?"instant":"smooth"});
+ const paper=el("gardenLetter");paper.hidden=false;paper.focus({preventScroll:true});paper.scrollIntoView({block:"nearest",behavior:(reduce.matches||stable())?"instant":"smooth"});
 }
 function openLetter(){
  if(!letterReady||letterOpening)return;
- if(letterOpen){el("gardenLetter").focus({preventScroll:true});el("gardenLetter").scrollIntoView({block:"nearest",behavior:reduce.matches?"instant":"smooth"});return;}
+ if(letterOpen){el("gardenLetter").focus({preventScroll:true});el("gardenLetter").scrollIntoView({block:"nearest",behavior:(reduce.matches||stable())?"instant":"smooth"});return;}
  letterOpening=true;el("openLetter").setAttribute("aria-disabled","true");el("envelopeLabel").textContent=copy.letterOpening;
  el("letterStation").classList.add("letter-opening");
- if(reduce.matches||document.hidden)revealLetter();else letterTimer=setTimeout(revealLetter,900);
+ if(reduce.matches||stable()||document.hidden)revealLetter();else letterTimer=setTimeout(revealLetter,900);
 }
 function init(config){
  if(initialized)return;initialized=true;copy=config;
