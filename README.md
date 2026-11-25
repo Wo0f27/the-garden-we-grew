@@ -1,6 +1,6 @@
 # The Garden We Grew
 
-Prototype 07 — direct bouquet positioning and bouquet-only undo/redo. The visual direction is provisional, not a finished gift.
+Prototype 08 — responsive polish and quality assurance. The visual direction is provisional, not a finished gift.
 
 ## Open the prototype
 
@@ -19,6 +19,10 @@ Static site; no install, no build, no server-side service. To publish, enable **
 ## Personalize
 
 Edit only [garden-text.js](garden-text.js) for ordinary writing. Keep object keys and punctuation, and change quoted values. It is fetched with a fresh URL on startup to avoid stale text. Do not add sensitive information to the public repository.
+
+## Automated browser QA
+
+Run `node tests/model.test.cjs` for model tests. To exercise actual browser rendering locally, install Python Playwright (`pip install playwright==1.51.1`, `python -m playwright install chromium`), then run `python tests/browser_qa.py` from the repository root. It serves a temporary local copy, uses isolated browser contexts, exercises the garden and downloads, and writes screenshots to a temporary output folder. No test dependency ships to the visitor.
 
 ## Review checklist
 

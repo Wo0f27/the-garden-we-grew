@@ -1,0 +1,15 @@
+/* Prototype 08 — responsive and readability refinements. Original project styles. */
+:root{--muted:#53624f;--line:#cdbda3;--shadow:0 12px 36px #425d4914}
+.masthead{flex-wrap:wrap}.masthead>span:nth-child(2){min-width:0;overflow-wrap:anywhere}.edition{font-size:.68rem}
+.intro-copy,.hero-art,.bouquet-controls,.bouquet-paper,.position-panel{min-width:0}
+.intro{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr)}
+.bouquet-workspace{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)}
+.scene-heading h2,.section-head h2{color:#3e5844}.section-head .kicker,.scene-heading .kicker{color:#5a6a50}
+.scene-picture,.florist-room{border-color:#c4ad88;box-shadow:0 0 0 4px #fff7e7,0 13px 34px #53644714}
+.plant-card{background:linear-gradient(160deg,#fffaf1,#f8f0e3);border-color:#cdbda3}.plant-message{color:#3e5545}.plant-card .species-meaning{color:#765746}
+.button:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #8e526e;outline-offset:3px}
+.arrangement-row span{min-width:0;overflow-wrap:anywhere}.position-panel select,.bouquet-controls select{max-width:100%;font-size:16px}.tray-flower{overflow:hidden}.tray-name{overflow-wrap:anywhere}.tray-state{color:#655a47}
+.button-row button{min-width:0}.letter-paper .letter-body{color:#364c3c}.letter-paper .signature{color:#7c4e64}
+@media(max-width:750px){.intro,.bouquet-workspace{grid-template-columns:minmax(0,1fr)}.masthead{gap:6px}.edition{font-size:.63rem}.scene-picture,.florist-room{box-shadow:0 0 0 2px #fff7e7,0 8px 22px #53644714}.plant-card .action{padding-inline:8px}.position-grid,.history-controls{gap:8px}.bouquet-controls{padding-inline:1px}.letter-actions>*{min-width:0}footer{flex-wrap:wrap}}
+@media(max-width:360px){.masthead .edition{margin-left:0}.position-panel{padding-inline:8px}.arrangement-row{gap:4px}.arrangement-row button{padding-inline:6px}.letter-paper{padding-inline:19px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}

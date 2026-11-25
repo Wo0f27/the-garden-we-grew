@@ -4,7 +4,7 @@
 "use strict";
 const M=window.GardenModel,L=window.GardenLandscape,el=id=>document.getElementById(id);
 const reduce=window.matchMedia("(prefers-reduced-motion: reduce)");
-let initialized=false, gateOpen=false, letterOpen=false, letterOpening=false, letterTimer=0, letterReady=false, gateTimer=0, lastSignature="", copy;
+let initialized=false, gateOpen=false, letterOpen=false, letterOpening=false, letterTimer=0, letterReady=false, gateTimer=0, lastSignature="", lastBloomCount=-1, copy;
 const base=(id,stage)=>({id,seed:M.seedFor(id),stage});
 function group(x,y,scale,markup){return '<g transform="translate('+x+' '+y+') scale('+scale+')">'+markup+'</g>';}
 function gardenFlowers(target,state,locations){
@@ -83,7 +83,8 @@ function update(state,config,grown){
  if(sig!==lastSignature){lastSignature=sig;
  gardenFlowers(el("pathPlants"),state,[[72,296,.63],[153,287,.48],[218,246,.31],[386,241,.31],[466,288,.55],[548,299,.65]]);
  gardenFlowers(el("finalPlants"),state,[[38,314,.40],[100,316,.31],[223,315,.29],[416,315,.29],[490,314,.40],[560,315,.48]]);
- drawTree(grown);updateLandscape(grown);}
+ }
+ if(grown!==lastBloomCount){lastBloomCount=grown;drawTree(grown);updateLandscape(grown);}
  el("pathProgress").textContent=grown?config.pathGrown.replace("{count}",grown).replace("{total}",M.species.length):config.pathReady;
  const ready=grown===M.species.length;letterReady=ready;el("openLetter").disabled=!ready;
  el("letterStation").classList.toggle("letter-ready",ready);el("benchEnvelope").setAttribute("visibility",ready?"visible":"hidden");

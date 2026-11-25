@@ -1,4 +1,4 @@
-# Third-party source and asset register — Prototype 07
+# Third-party source and asset register — Prototype 08
 
 Prototype 01 was original code. Prototype 02 selectively adapts yZhanWeather's petal/firefly CSS motion from src/conf.js at commit 9f3eb3d41910740319813c4f87011880ea1c5978 (MIT; Copyright (c) 2023 馒头饭). Retained exact upstream notice at vendor/yZhanWeather/LICENSE. Changes: scene-local clipping, reduced particle count, relative placement and timing, intersection/visibility pause, reduced-motion suppression. No original yZhanWeather JS runtime, third-party images or fonts are bundled. System fonts and native SVG/Canvas remain.
 
@@ -11,6 +11,8 @@ Prototype 05 selectively ports Garten drawGrass, drawFern and drawBush geometry 
 Prototype 06 uses original bench/envelope/letter illustrations and native CSS transitions with a guarded finite state controller. No additional upstream code or assets. Anime.js remains a candidate for advanced dragging; a separate runtime is unnecessary for this finite envelope sequence. Existing four source adaptations and notices retained.
 
 Prototype 07 compares Anime.js 4.5.0 draggable module and Interact.js drag/snap/inertia capabilities with the required single-pointer, stem-anchored SVG edit. Native Pointer Events, SVG screen-matrix conversion, bounded polar geometry and local history are selected for this implementation. No source copied or additional runtime required. R14/R15 remain reserves if native device tests reveal gaps; all existing integrations retained.
+
+Prototype 08 uses original CSS and controller refinements. Playwright is a test-only tool, not a runtime site dependency; no new artwork or font is imported.
 
 | Candidate | Role in later evaluation |
 |---|---|
