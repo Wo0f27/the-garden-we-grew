@@ -63,3 +63,20 @@ body>.masthead{flex:0 0 auto;width:100%;margin:0 auto;padding-top:max(12px,env(s
 @media(max-width:750px){#app{padding-inline:12px}body>.masthead{padding-inline:12px}#gateIntro{gap:8px;align-content:center}#gateIntro .hero-art svg{max-height:clamp(110px,30dvh,245px)}#gateIntro h1{font-size:clamp(2rem,8vw,3.4rem)}#gateIntro .intro-description{margin:8px auto 14px}#gardenPath .scene-heading h2,#glassEntrance .scene-heading h2{font-size:clamp(1.5rem,6vw,2.25rem)}#gardenPath .scene-heading .kicker,#glassEntrance .scene-heading .kicker{margin-bottom:5px}#gardenPath .scene-heading p:last-child,#glassEntrance .scene-heading p:last-child{font-size:.85rem;line-height:1.4}#app>footer{flex-wrap:nowrap}#app>footer #reset{white-space:normal}}
 /* Extreme short/zoomed viewports: permit chapter-local access rather than clipping controls. */
 @media(max-height:420px){#gardenJourney>#gardenPath,#gardenJourney>#glassEntrance{grid-template-rows:auto minmax(110px,1fr) auto;align-content:start;overflow-y:auto;overscroll-behavior:contain}#gateIntro{align-content:start}}
+
+/* 8.16: screen-wide petal curtain. Ordinary DOM shapes, no SVG filter, canvas,
+   external assets, or continuous animation loop. The opaque veil conceals the swap. */
+.petal-transition{position:fixed;inset:0;z-index:1000;overflow:hidden;pointer-events:auto;touch-action:none;isolation:isolate}
+.petal-veil,.transition-petals{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.petal-veil{background:#f4dbdc;opacity:1}
+.transition-petal{position:absolute;display:block;left:var(--x);top:var(--y);width:clamp(48px,var(--size),180px);aspect-ratio:.76;border-radius:62% 38% 68% 32% / 58% 28% 72% 42%;background:linear-gradient(145deg,#fff2e5 0%,var(--color) 48%,var(--color) 82%);border:1px solid #b7798c30;transform:translate(-50%,-50%) rotate(var(--rot));opacity:1}
+.transition-petal:nth-child(3n){border-radius:48% 52% 64% 36% / 31% 42% 58% 69%;background:linear-gradient(165deg,#fff0e8,var(--color) 58%,#d29bab)}
+.transition-petal:nth-child(4n){width:clamp(65px,23vmin,210px)}
+.petal-transition[data-phase="covering"] .petal-veil{animation:petal-veil-in .54s ease-in-out both}
+.petal-transition[data-phase="covering"] .transition-petal{animation:petal-sweep-in .44s var(--delay) cubic-bezier(.18,.68,.32,1) both}
+.petal-transition[data-phase="revealing"] .petal-veil{animation:petal-veil-out .54s ease-in-out both}
+.petal-transition[data-phase="revealing"] .transition-petal{animation:petal-sweep-out .44s var(--delay) ease-in both}
+@keyframes petal-veil-in{0%,20%{opacity:0}100%{opacity:1}}@keyframes petal-veil-out{0%{opacity:1}100%{opacity:0}}
+@keyframes petal-sweep-in{from{opacity:0;transform:translate(-115vw,-45vh) rotate(calc(var(--rot) - 150deg)) scale(.7)}to{opacity:1;transform:translate(-50%,-50%) rotate(var(--rot)) scale(1)}}
+@keyframes petal-sweep-out{from{opacity:1;transform:translate(-50%,-50%) rotate(var(--rot)) scale(1)}to{opacity:0;transform:translate(110vw,50vh) rotate(calc(var(--rot) + 140deg)) scale(.7)}}
+@media(prefers-reduced-motion:reduce){.petal-transition{display:none!important}}

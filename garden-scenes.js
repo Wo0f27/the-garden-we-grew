@@ -7,21 +7,55 @@ const reduce=window.matchMedia("(prefers-reduced-motion: reduce)");
 let initialized=false, gateOpen=false, gateWalking=false, gateArriving=false, gateFrame=0, letterOpen=false, letterOpening=false, letterExtracting=false, letterUnsealed=false, letterRead=false, letterTimer=0, letterReady=false, gateTimer=0, lastSignature="", lastBloomCount=-1, copy;
 const SCENES=["gardenPath","nursery","glassEntrance","greenhouse","finalGarden"];
 const NEIGHBORS={gardenPath:["nursery"],nursery:["gardenPath","glassEntrance"],glassEntrance:["nursery","greenhouse"],greenhouse:["glassEntrance","finalGarden"],finalGarden:["greenhouse","nursery"]};
-let activeScene="gardenPath",sceneTimer=0,pendingScene=null;
+let activeScene="gardenPath",sceneTimer=0,pendingScene=null,scenePhase="idle";
+const PETAL_COVER_MS=580,PETAL_HOLD_MS=90,PETAL_REVEAL_MS=580;
 function revealScene(id){
- clearTimeout(sceneTimer);sceneTimer=0;pendingScene=null;
  for(const key of SCENES){const scene=el(key);scene.classList.remove("scene-leaving","scene-entering");scene.hidden=key!==id;}
  el("gardenClosing").hidden=id!=="finalGarden"||!letterRead;activeScene=id;
- const dest=el(id);if(!reduce.matches&&!document.hidden)dest.classList.add("scene-entering");
- dest.scrollTop=0;dest.focus({preventScroll:true});
+ el(id).scrollTop=0;
+}
+function buildTransitionPetals(){
+ const root=el("transitionPetals");if(root.childElementCount)return;
+ const colors=["#edb8c4","#d995a8","#f7d6d7","#e5a3b7","#f4d9bd","#f9e6d8","#c786a0"];
+ for(let i=0;i<36;i++){const p=document.createElement("i"),col=i%6,row=Math.floor(i/6);
+  p.className="transition-petal";
+  p.style.setProperty("--x",((col+.5)*100/6+((i*13)%9-4))+"%");
+  p.style.setProperty("--y",((row+.5)*100/6+((i*7)%9-4))+"%");
+  p.style.setProperty("--size",(11+(i*17)%12)+"vmin");
+  p.style.setProperty("--rot",((i*47)%360)+"deg");
+  p.style.setProperty("--delay",((i*19)%110)+"ms");
+  p.style.setProperty("--color",colors[i%colors.length]);
+  root.append(p);
+ }
+}
+function finishSceneTransition(){
+ if(!pendingScene)return;
+ clearTimeout(sceneTimer);sceneTimer=0;
+ const id=pendingScene;if(activeScene!==id)revealScene(id);
+ const overlay=el("petalTransition");overlay.hidden=true;overlay.removeAttribute("data-phase");
+ el("app").inert=false;pendingScene=null;scenePhase="idle";
+ if(!document.hidden)el(id).focus({preventScroll:true});
+}
+function coverScene(){
+ if(!pendingScene||scenePhase!=="covering")return;
+ if(reduce.matches||document.hidden){finishSceneTransition();return;}
+ const overlay=el("petalTransition");overlay.dataset.phase="covered";scenePhase="covered";
+ // The opaque veil is fully painted before any chapter changes.
+ revealScene(pendingScene);
+ sceneTimer=setTimeout(()=>{
+  if(!pendingScene||scenePhase!=="covered")return;
+  overlay.dataset.phase="revealing";scenePhase="revealing";
+  sceneTimer=setTimeout(finishSceneTransition,PETAL_REVEAL_MS);
+ },PETAL_HOLD_MS);
 }
 function navigateScene(id){
  if(!gateOpen||gateWalking||pendingScene||!NEIGHBORS[activeScene]?.includes(id))return;
  if(activeScene==="finalGarden"&&(letterOpening||letterExtracting||letterOpen||letterUnsealed))closeLetter();
  pendingScene=id;
- if(reduce.matches||document.hidden){revealScene(id);return;}
- el(activeScene).classList.remove("scene-entering");el(activeScene).classList.add("scene-leaving");
- sceneTimer=setTimeout(()=>revealScene(id),240);
+ if(reduce.matches||document.hidden){finishSceneTransition();return;}
+ buildTransitionPetals();
+ const overlay=el("petalTransition");overlay.hidden=false;overlay.dataset.phase="covering";scenePhase="covering";el("app").inert=true;
+ sceneTimer=setTimeout(coverScene,PETAL_COVER_MS);
 }
 const base=(id,stage)=>({id,seed:M.seedFor(id),stage});
 function group(x,y,scale,markup){return '<g transform="translate('+x+' '+y+') scale('+scale+')">'+markup+'</g>';}
@@ -158,10 +192,10 @@ function init(config){
  el("letterDialog").addEventListener("cancel",event=>{event.preventDefault();closeLetter(true);});
  el("letterDialog").addEventListener("click",event=>{if(event.target===el("letterDialog"))closeLetter(true);});
  el("letterBotanical").innerHTML='<svg viewBox="0 0 180 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+group(90,113,.60,M.flowerMarkup(base("rose",4)))+group(57,111,.39,M.flowerMarkup(base("gypsophila",4)))+group(122,112,.43,M.flowerMarkup(base("peony",4)))+'</svg>';
- if(reduce.addEventListener)reduce.addEventListener("change",()=>{motion();if(reduce.matches&&gateWalking)finishGate();if(reduce.matches&&letterOpening)finishUnseal();if(reduce.matches&&letterExtracting)revealLetter();if(reduce.matches&&pendingScene)revealScene(pendingScene);});
+ if(reduce.addEventListener)reduce.addEventListener("change",()=>{motion();if(reduce.matches&&gateWalking)finishGate();if(reduce.matches&&letterOpening)finishUnseal();if(reduce.matches&&letterExtracting)revealLetter();if(reduce.matches&&pendingScene)finishSceneTransition();});
  if("IntersectionObserver" in window){const io=new IntersectionObserver(entries=>entries.forEach(e=>e.target.classList.toggle("scene-visible",e.isIntersecting)),{threshold:.04});for(const scene of document.querySelectorAll(".scene-picture"))io.observe(scene);}
  else for(const scene of document.querySelectorAll(".scene-picture"))scene.classList.add("scene-visible");
- document.addEventListener("visibilitychange",()=>{document.body.classList.toggle("motion-paused",document.hidden);if(document.hidden&&gateWalking)finishGate();if(document.hidden&&letterOpening)finishUnseal();if(document.hidden&&letterExtracting)revealLetter();if(document.hidden&&pendingScene)revealScene(pendingScene);});
+ document.addEventListener("visibilitychange",()=>{document.body.classList.toggle("motion-paused",document.hidden);if(document.hidden&&gateWalking)finishGate();if(document.hidden&&letterOpening)finishUnseal();if(document.hidden&&letterExtracting)revealLetter();if(document.hidden&&pendingScene)finishSceneTransition();});
  el("heroFoliage").innerHTML=L.bush(55,289,22,82)+L.bush(306,290,23,223)+L.fern(48,295,43,317)+L.fern(312,296,46,812);
  el("heroVines").innerHTML=L.vine(66,181,35,119,1,23)+L.vine(294,184,35,121,-1,41);
  el("glassFoliage").innerHTML=L.bush(60,264,28,13)+L.bush(540,264,28,53)+L.fern(95,276,35,79)+L.fern(507,276,35,107);

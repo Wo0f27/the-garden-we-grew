@@ -40,6 +40,8 @@ def only_scene(page,id):
 def go(page,source,destination):
     click(page, f'#{source} [data-scene-go="{destination}"]')
     only_scene(page,destination)
+    expect(page.locator("#petalTransition")).to_be_hidden()
+    assert not page.locator("#app").evaluate("el=>el.inert"), "transition left app inert"
 def plant(page, id, count=4):
     click(page, f'#plants button[data-id="{id}"][data-action="plant"]')
     for _ in range(count): click(page, f'#plants button[data-id="{id}"][data-action="water"]')
@@ -86,7 +88,30 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     only_scene(page,"gardenPath")
     page.locator("#gardenPath .scene-picture").screenshot(path=str(OUT/(name+"-path.png")),animations="disabled")
     if reduce=="no-preference": expect(page.locator("#butterflyEffects .ambient-butterfly")).to_have_count(3)
-    go(page,"gardenPath","nursery")
+    if reduce=="no-preference":
+        # Observe the precise handoff, including opacity and the input lock.
+        page.evaluate("""()=>{window.qaPetalHandoff=null;const dest=document.querySelector("#nursery");new MutationObserver((_,observer)=>{if(!dest.hidden){const overlay=document.querySelector("#petalTransition");window.qaPetalHandoff={phase:overlay.dataset.phase,opacity:getComputedStyle(overlay.querySelector(".petal-veil")).opacity,locked:document.querySelector("#app").inert,oldHidden:document.querySelector("#gardenPath").hidden};observer.disconnect()}}).observe(dest,{attributes:true,attributeFilter:["hidden"]})}""")
+        click(page,'#gardenPath [data-scene-go="nursery"]')
+        expect(page.locator("#petalTransition")).to_have_attribute("data-phase","covering")
+        expect(page.locator("#transitionPetals .transition-petal")).to_have_count(36)
+        page.evaluate("""()=>document.querySelector('#gardenPath [data-scene-go="nursery"]').click()""")
+        page.wait_for_function("()=>window.qaPetalHandoff!==null")
+        assert page.evaluate("window.qaPetalHandoff")=={"phase":"covered","opacity":"1","locked":True,"oldHidden":True}
+        only_scene(page,"nursery")
+        expect(page.locator("#petalTransition")).to_be_hidden()
+        assert not page.locator("#app").evaluate("el=>el.inert")
+        # Interrupt a return transition, then restore normal motion and continue.
+        click(page,'#nursery [data-scene-go="gardenPath"]')
+        expect(page.locator("#petalTransition")).to_have_attribute("data-phase","covering")
+        page.emulate_media(reduced_motion="reduce")
+        only_scene(page,"gardenPath")
+        expect(page.locator("#petalTransition")).to_be_hidden()
+        assert not page.locator("#app").evaluate("el=>el.inert")
+        page.emulate_media(reduced_motion="no-preference")
+        go(page,"gardenPath","nursery")
+    else:
+        go(page,"gardenPath","nursery")
+        expect(page.locator("#transitionPetals .transition-petal")).to_have_count(0)
     expect(page.locator("#peachNursery")).to_be_visible()
     expect(page.locator("#peachSticker")).to_have_attribute("src",PEACH_GIF)
     if reduce=="no-preference":

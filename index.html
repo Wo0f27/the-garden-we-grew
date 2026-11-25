@@ -6,17 +6,17 @@
 <meta name="theme-color" content="#f5edde">
 <title>The Garden We Grew</title>
 <link rel="stylesheet" href="styles/garden.css?v=8.9">
-<link rel="stylesheet" href="styles/scenery.css?v=8.11">
+<link rel="stylesheet" href="styles/scenery.css?v=8.16">
 <link rel="stylesheet" href="styles/greenhouse.css?v=8.15">
 <link rel="stylesheet" href="styles/finale.css?v=8.14">
 <link rel="stylesheet" href="styles/polish.css?v=8.2">
 <script defer src="garden-model.js?v=8.15"></script>
 <script defer src="garden-landscape.js?v=5"></script>
-<script defer src="garden-scenes.js?v=8.14"></script>
+<script defer src="garden-scenes.js?v=8.16"></script>
 <script defer src="garden.js?v=8.15"></script>
 </head>
 <body>
-<header class="masthead"><span class="monogram" aria-hidden="true">✿</span><span data-copy="brand">The Garden We Grew</span><span class="edition">Prototype 08.15</span></header>
+<header class="masthead"><span class="monogram" aria-hidden="true">✿</span><span data-copy="brand">The Garden We Grew</span><span class="edition">Prototype 08.16</span></header>
 <main id="app" hidden>
 <section id="gateIntro" class="intro">
 <div class="intro-copy"><p class="kicker" data-copy="eyebrow"></p><h1 data-copy="title"></h1><p class="intro-description" data-copy="intro"></p><button type="button" id="openGate" class="button primary" aria-controls="gardenPath" aria-expanded="false" data-copy="enter"></button></div>
@@ -78,5 +78,6 @@
 <dialog id="helpDialog" class="help-dialog" aria-labelledby="helpTitle"><div class="help-heading"><picture class="help-peach"><source media="(prefers-reduced-motion: reduce)" srcset="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"><img src="https://media.tenor.com/ZQ7fGn4s3YwAAAAj/peach-goma-paw-paw.gif" alt="Peach raising her paw" width="238" height="202" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.hidden=true"></picture><div><p class="kicker">Peach</p><h2 id="helpTitle" data-copy="helpTitle"></h2></div></div><p data-copy="helpIntro"></p><ol class="help-steps"><li data-copy="helpAdd"></li><li data-copy="helpArrange"></li><li data-copy="helpPosition"></li><li data-copy="helpFinish"></li></ol><button id="closeHelp" type="button" data-copy="helpClose" autofocus></button></dialog>
 <p id="loading" class="loading" role="status">Opening the garden…</p>
 <p id="notice" class="notice" role="status" aria-live="polite"></p>
+<div id="petalTransition" class="petal-transition" aria-hidden="true" hidden><div class="petal-veil"></div><div id="transitionPetals" class="transition-petals"></div></div>
 <noscript><p class="loading">This interactive prototype needs JavaScript.</p></noscript>
 </body></html>
