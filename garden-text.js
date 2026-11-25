@@ -11,10 +11,10 @@ window.GARDEN_TEXT = {
   // =====================================================================
   // 01 · TITLE & GARDEN ENTRANCE
   // =====================================================================
-  brand: "The Garden We Grew",
-  eyebrow: "A little place to grow something together",
-  title: "The Garden We Grew",
-  intro: "Take a little time for yourself. Choose a seed, give it some care, and see what grows. There is a place here for every flower you nurture.",
+  brand: "The Garden We Can Call Our Own",
+  eyebrow: "Our safe little bubble for our botanical needs haha",
+  title: "A Garden Of Our Own",
+  intro: "Take a little breather of your very own garden, considering it's been appearing alot on your reels haha.",
   enter: "Step into the garden",
   gateOpened: "The gate is open",
 
@@ -22,9 +22,9 @@ window.GARDEN_TEXT = {
   // 02 · BEYOND THE GATE
   // =====================================================================
   pathKicker: "Beyond the gate",
-  pathTitle: "A garden taking shape",
-  pathIntro: "The flowers you tend will find a little place along this path. Come back as often as you like.",
-  pathReady: "The garden is waiting for its first bloom.",
+  pathTitle: "A garden under your care",
+  pathIntro: "The flowers you tend will find a little place along this path. Come back as often as you like, it's all yours my love.",
+  pathReady: "The garden is craving for your care, like me hehe.",
   pathGrown: "{count} of {total} flowers are in bloom along the path.",
   visitNursery: "Visit the nursery",
 
@@ -34,7 +34,7 @@ window.GARDEN_TEXT = {
   nurseryChapter: "I.",
   nurseryKicker: "The nursery",
   nurseryTitle: "Something to nurture",
-  nurseryIntro: "Choose any seed. Water it a little at a time until it blooms, then bring it with you to the greenhouse.",
+  nurseryIntro: "Choose any flower. Water it a little at a time until it blooms, then bring it with you to the greenhouse.",
   nurseryProgress: "{count} of {total} flowers in bloom",
   readyToPlant: "Ready to plant",
   stages: ["Seed", "Sprout", "Stem and leaves", "Bud", "In bloom"],
@@ -48,24 +48,24 @@ window.GARDEN_TEXT = {
   // 04 · FLOWER MESSAGES — personalize each meaning and message
   // =====================================================================
   flowers: {
-    rose: {name:"Rose", meaning:"Love", message:"A little reminder of how much you are loved."},
-    peony: {name:"Peony", meaning:"Happiness", message:"May we find more little reasons to smile together."},
-    tulip: {name:"Tulip", meaning:"Affection", message:"Here is a flower for the everyday moments I treasure."},
-    daisy: {name:"Daisy", meaning:"New beginnings", message:"There is always something new to discover."},
-    sunflower: {name:"Sunflower", meaning:"Adoration", message:"May there be warmth in the days ahead."},
-    gypsophila: {name:"Baby's breath", meaning:"Lasting love", message:"Even the smallest things can make something beautiful."}
+    rose: {name:"Rose", meaning:"Love", message:"The first actual flower I gave you. I still remember how it brought you so much joy. They say this means love, a reminder of how much I love you and that I will always do."},
+    peony: {name:"Peony", meaning:"Happiness", message:"A flower you recently found and started to adore, I was hoping to find a shop selling some but I wasn't able to properly find one. Apparently it means happiness, to me it shows the happiness you make me feel. I'm grateful that I have you in my life. I hope I can make you as happy, as you deserve nothing but happiness."},
+    tulip: {name:"Tulip", meaning:"Affection", message:"Apparently, tulips mean affection. Reminds me of how affectionate you are to me, my lovely cutie baby. I miss you."},
+    daisy: {name:"Daisy", meaning:"New beginnings", message:"As we open new chapters of our lives together, there is always something new to find and experience especially for us. Let's discover them together and may we create more fun memories with them. I look forward to our future together. Know that I'll always be on your side, okay?"},
+    sunflower: {name:"Sunflower", meaning:"Adoration", message:"Sunflower surprised me cause some say they mean adoration. Like how much I adore my lovely, cutie, sexy, beautiful, the prettiest and most gorgeous baby lovelove in the wide universe, My cutie baby Ck."},
+    gypsophila: {name:"Baby's breath", meaning:"Lasting love", message:"The very first flower you told me you love when we first met. I handcrafted some to give to you, do you still have them? I miss making them for you, I definitely should start again. They say they mean lasting love, just like my love for you that's everlasting. A love that will never change. I'll always be yours, I love you."}
   },
 
   // =====================================================================
   // 05 · PEACH AT THE NURSERY & GREENHOUSE
   // =====================================================================
   peachName: "Peach",
-  peachNurseryInvite: "Come on, my love! Let’s head to the greenhouse and see what we can make with your flowers.",
+  peachNurseryInvite: "Come on! Let’s head to the greenhouse and see what we can make with your flowers.",
   peachGreenhouseButton: "Let’s go to the greenhouse",
   glassKicker: "Among the glass and vines",
   glassTitle: "A greenhouse of little treasures",
   glassIntro: "Bring the flowers you have grown inside and arrange them into something of your own.",
-  peachGlassInvite: "We’re here, my love! Tap the doors to open them. I’ll meet you inside!",
+  peachGlassInvite: "We’re here! Tap the doors to open them. I’ll meet you inside!",
   backNursery: "Return to the nursery",
   backGlass: "Back outside the greenhouse",
 
@@ -98,7 +98,7 @@ window.GARDEN_TEXT = {
   // =====================================================================
   helpButton: "Need help?",
   helpTitle: "Let’s make your bouquet!",
-  helpIntro: "Hi, my love! Peach here. You can make your bouquet however you like.",
+  helpIntro: "Hi! Peach here. You can make your bouquet however you like.",
   helpAdd: "Add any bloomed flower. Tap Add another to use more of the same kind, up to 12 stems in total. You can leave out any flowers you don’t want.",
   helpArrange: "Use ↑ and ↓ to change the order, or × to remove one stem. Undo and redo let you try things without losing your work.",
   helpPosition: "Tap Position the flowers and drag a flower head, or use the position controls to tilt or raise one stem. Unwrap first if you have already wrapped it.",
@@ -168,10 +168,12 @@ window.GARDEN_TEXT = {
   // 10 · YOUR PERSONAL LETTER & CLOSING MESSAGE
   // =====================================================================
   letterHeading: "My love,",
-  letterBody: "Thank you for taking the time to wander through this little garden. I hope the things we grow together will always have a place here. This letter is a placeholder for now.",
-  letterSign: "With love",
-  closingTitle: "A little more room to grow",
-  closing: "This is only the beginning of our little garden. There will always be room for another flower.",
+  letterBody: "Thank you for taking the time to wander through this little garden. The messages earlier might sound cringy or over the top but they're true. I appreciate and grateful that you're with me. I may be flawed but I'm willing to keep making improvements until I become a better man for you. I love you and will always do. Thank you for taking care of me. Thank you for loving me. I am so lucky to have you that I don't really know how my life would've been like if you're not with me. Anyway, our anniversary is closing, wishing I can see you soon. I love you, okay? Sorry this is a little short, I am starting to worry that my letters are getting old haha. Anyway, whatever challenges you face, no matter how bad things are, I'll always be by your side. And know, I believe in you, I always will. Buhay lang yan, you're My Ck, whatever it throws at you, I know you're always gonna come on top (of me ;))
+
+Ps. I love you",
+  letterSign: "With so much love",
+  closingTitle: "A lifetime with you is what I'm wishing for",
+  closing: "This is only the beginning of our little garden. There will always be room for another flower. (But you're the only flower I want hehe)",
 
   // =====================================================================
   // 11 · STATUS MESSAGES & RESET (normally leave these alone)
