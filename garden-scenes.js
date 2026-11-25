@@ -4,7 +4,7 @@
 "use strict";
 const M=window.GardenModel,L=window.GardenLandscape,el=id=>document.getElementById(id);
 const reduce=window.matchMedia("(prefers-reduced-motion: reduce)");
-let initialized=false, gateOpen=false, letterOpen=false, letterOpening=false, letterTimer=0, letterReady=false, gateTimer=0, lastSignature="", lastBloomCount=-1, copy;
+let initialized=false, gateOpen=false, gateWalking=false, gateFrame=0, letterOpen=false, letterOpening=false, letterTimer=0, letterReady=false, gateTimer=0, lastSignature="", lastBloomCount=-1, copy;
 const base=(id,stage)=>({id,seed:M.seedFor(id),stage});
 function group(x,y,scale,markup){return '<g transform="translate('+x+' '+y+') scale('+scale+')">'+markup+'</g>';}
 function gardenFlowers(target,state,locations){
@@ -28,12 +28,52 @@ function motion(){
   const target=el(id);if(reduce.matches)target.replaceChildren();else ambient(target,kind,count);
  }
 }
-function openGate(){
- if(gateOpen){el("gardenPath").scrollIntoView({behavior:reduce.matches?"instant":"smooth"});return;}
- gateOpen=true;el("openGate").setAttribute("aria-expanded","true");el("openGate").textContent=copy.gateOpened;
- document.body.classList.add("gate-open");el("gardenJourney").hidden=false;
- clearTimeout(gateTimer);gateTimer=setTimeout(()=>{el("gardenPath").focus({preventScroll:true});el("gardenPath").scrollIntoView({behavior:reduce.matches?"instant":"smooth"});},reduce.matches?0:650);
+// Entrance camera: animate only the existing 360×330 illustration's viewBox.
+const GATE_WIDE="0 0 360 330", GATE_CLOSE=[148,162,100,100*330/360];
+function finishGate(){
+ if(!gateWalking)return;
+ clearTimeout(gateTimer);cancelAnimationFrame(gateFrame);gateWalking=false;gateOpen=true;
+ const b=el("openGate"),path=el("gardenPath");
+ b.removeAttribute("aria-disabled");b.setAttribute("aria-expanded","true");b.textContent=copy.gateOpened;
+ el("gardenJourney").hidden=false;
+ path.focus({preventScroll:true});path.scrollIntoView({behavior:"instant",block:"start"});
+ // Restore the wide entrance once we have crossed, so returning to it is natural.
+ el("gateCamera").setAttribute("viewBox",GATE_WIDE);
  motion();
+}
+function walkThrough(){
+ if(!gateWalking)return;
+ if(reduce.matches||document.hidden){finishGate();return;}
+ const camera=el("gateCamera"),start=[0,0,360,330];let first=null,last=-Infinity;
+ function frame(now){
+  if(!gateWalking)return;
+  if(reduce.matches||document.hidden){finishGate();return;}
+  if(first===null)first=now;
+  const t=Math.min(1,(now-first)/1100);
+  if(now-last>=32||t===1){
+   const eased=t*t*(3-2*t);
+   camera.setAttribute("viewBox",start.map((v,i)=>(v+(GATE_CLOSE[i]-v)*eased).toFixed(3)).join(" "));
+   last=now;
+  }
+  if(t<1)gateFrame=requestAnimationFrame(frame);
+  else gateTimer=setTimeout(finishGate,130);
+ }
+ gateFrame=requestAnimationFrame(frame);
+}
+function openGate(){
+ if(gateWalking)return;
+ if(gateOpen){el("gardenPath").scrollIntoView({behavior:reduce.matches?"instant":"smooth"});return;}
+ gateWalking=true;
+ const button=el("openGate"),camera=el("gateCamera");
+ button.setAttribute("aria-disabled","true");
+ if(!reduce.matches&&!document.hidden){
+  const rect=camera.getBoundingClientRect(),height=window.innerHeight;
+  if(rect.top<0||rect.bottom>height)camera.scrollIntoView({behavior:"instant",block:"center"});
+ }
+ document.body.classList.add("gate-open");
+ if(reduce.matches||document.hidden||typeof requestAnimationFrame!=="function"){finishGate();return;}
+ // Let both gate leaves finish opening before moving toward the path.
+ gateTimer=setTimeout(walkThrough,820);
 }
 function closeLetter(restoreFocus=false){
  clearTimeout(letterTimer);letterTimer=0;letterOpening=false;letterOpen=false;
@@ -64,10 +104,10 @@ function init(config){
  el("openLetter").addEventListener("click",openLetter);
  el("closeLetter").addEventListener("click",()=>closeLetter(true));
  el("letterBotanical").innerHTML='<svg viewBox="0 0 180 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+group(90,113,.60,M.flowerMarkup(base("rose",4)))+group(57,111,.39,M.flowerMarkup(base("gypsophila",4)))+group(122,112,.43,M.flowerMarkup(base("peony",4)))+'</svg>';
- if(reduce.addEventListener)reduce.addEventListener("change",()=>{motion();if(reduce.matches&&letterOpening)revealLetter();});
+ if(reduce.addEventListener)reduce.addEventListener("change",()=>{motion();if(reduce.matches&&gateWalking)finishGate();if(reduce.matches&&letterOpening)revealLetter();});
  if("IntersectionObserver" in window){const io=new IntersectionObserver(entries=>entries.forEach(e=>e.target.classList.toggle("scene-visible",e.isIntersecting)),{threshold:.04});for(const scene of document.querySelectorAll(".scene-picture"))io.observe(scene);}
  else for(const scene of document.querySelectorAll(".scene-picture"))scene.classList.add("scene-visible");
- document.addEventListener("visibilitychange",()=>{document.body.classList.toggle("motion-paused",document.hidden);if(document.hidden&&letterOpening)revealLetter();});
+ document.addEventListener("visibilitychange",()=>{document.body.classList.toggle("motion-paused",document.hidden);if(document.hidden&&gateWalking)finishGate();if(document.hidden&&letterOpening)revealLetter();});
  el("heroFoliage").innerHTML=L.bush(55,289,22,82)+L.bush(306,290,23,223)+L.fern(48,295,43,317)+L.fern(312,296,46,812);
  el("heroVines").innerHTML=L.vine(66,181,35,119,1,23)+L.vine(294,184,35,121,-1,41);
  el("glassFoliage").innerHTML=L.bush(60,264,28,13)+L.bush(540,264,28,53)+L.fern(95,276,35,79)+L.fern(507,276,35,107);

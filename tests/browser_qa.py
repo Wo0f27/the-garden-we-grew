@@ -36,7 +36,18 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     fit(page)
     page.screenshot(path=str(OUT/(name+"-entrance.png")))
     click(page,"#openGate")
+    if reduce=="no-preference":
+        expect(page.locator("#openGate")).to_have_attribute("aria-disabled","true")
+        expect(page.locator("#gardenJourney")).to_be_hidden()
+        page.wait_for_function("""()=>{const w=document.querySelector("#gateCamera").viewBox.baseVal.width;return w<310&&w>110}""")
+        expect(page.locator("#gardenJourney")).to_be_hidden()
+        page.locator("#gateCamera").screenshot(path=str(OUT/(name+"-gate-zoom.png")))
+        page.evaluate("document.querySelector('#openGate').click()")
     expect(page.locator("#gardenJourney")).to_be_visible()
+    expect(page.locator("#openGate")).to_have_attribute("aria-expanded","true")
+    expect(page.locator("#gateCamera")).to_have_attribute("viewBox","0 0 360 330")
+    assert page.locator("#gardenJourney").evaluate("(el)=>getComputedStyle(el).animationName")=="none"
+    fit(page)
     if reduce=="no-preference":
         expect(page.locator("#butterflyEffects .ambient-butterfly")).to_have_count(3)
         page.wait_for_timeout(750)
@@ -132,6 +143,7 @@ try:
         for name,w,h,mobile in [("desktop",1280,900,False),("mobile",390,844,True),("narrow",320,740,True)]:
             journey(browser,name,w,h,mobile)
         journey(browser,"normal-motion",390,844,True,"no-preference")
+        journey(browser,"desktop-normal-motion",1280,900,False,"no-preference")
         browser.close()
     print("Browser QA PASS; screenshots and exports:",OUT,flush=True)
 finally:
