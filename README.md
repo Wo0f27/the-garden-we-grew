@@ -22,7 +22,7 @@ Edit only [garden-text.js](garden-text.js) for ordinary writing. Keep object key
 
 ## Automated browser QA
 
-Run `node tests/model.test.cjs` for model tests. To exercise actual browser rendering locally, install Python Playwright (`pip install playwright==1.51.1`, `python -m playwright install chromium`), then run `python tests/browser_qa.py` from the repository root. It serves a temporary local copy, uses isolated browser contexts, exercises the garden and downloads, and writes screenshots to a temporary output folder. No test dependency ships to the visitor.
+Run `node tests/model.test.cjs` for model tests. To exercise actual browser rendering locally, install Python Playwright (`pip install playwright==1.65.2`, `python -m playwright install chromium`), then run `python tests/browser_qa.py` from the repository root. It serves the local checkout, uses isolated browser contexts, exercises the garden and downloads, and writes screenshots to a temporary output folder. No test dependency ships to the visitor.
 
 ## Review checklist
 

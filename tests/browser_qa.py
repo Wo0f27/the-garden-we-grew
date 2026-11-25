@@ -105,7 +105,8 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     context.close()
 try:
     with sync_playwright() as p:
-        browser=p.chromium.launch(headless=True)
+        chrome=os.environ.get("GARDEN_QA_CHROME")
+        browser=p.chromium.launch(headless=True, **({"executable_path":chrome} if chrome else {}))
         for name,w,h,mobile in [("desktop",1280,900,False),("mobile",390,844,True),("narrow",320,740,True)]:
             journey(browser,name,w,h,mobile)
         browser.close()
