@@ -43,6 +43,8 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     expect(page.locator("#openLetter")).to_be_disabled()
     for id in SPECIES: plant(page,id)
     if reduce=="no-preference": page.wait_for_timeout(1000)
+    expect(page.locator("#notice")).to_be_empty(timeout=6000)
+    assert page.locator("#plants .plant-card").evaluate_all("""cards=>cards.every(card=>{const art=card.querySelector(".plant-art").getBoundingClientRect(),svg=card.querySelector(".plant-art svg").getBoundingClientRect(),name=card.querySelector("h3").getBoundingClientRect();return svg.bottom<=art.bottom+1&&svg.top>=art.top-1&&art.bottom<=name.top+1})"""), "nursery illustration overlaps heading"
     page.locator("#gardenPath .scene-picture").screenshot(path=str(OUT/(name+"-path.png")),animations="disabled")
     page.locator("#plants").screenshot(path=str(OUT/(name+"-nursery.png")),animations="disabled")
     expect(page.locator("#openLetter")).to_be_enabled()
@@ -106,6 +108,19 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     assert saved(page)["plants"]=={} and saved(page)["bouquet"]==[]
     expect(page.locator("#openLetter")).to_be_disabled()
     fit(page)
+    if reduce=="no-preference":
+        # A changed configuration response is loaded fresh after reload; no repository mutation.
+        old_url=next(u for u in reversed(requests) if "garden-text.js?v=" in u)
+        def fresh(route):
+            response=route.fetch()
+            route.fulfill(response=response,body=response.text()+"\nwindow.GARDEN_TEXT.title = \"QA fresh title\";\n")
+        page.route("**/garden-text.js?v=*",fresh)
+        page.wait_for_timeout(20)
+        page.reload(wait_until="networkidle")
+        expect(page.locator("h1")).to_have_text("QA fresh title")
+        new_url=next(u for u in reversed(requests) if "garden-text.js?v=" in u)
+        assert old_url!=new_url, "stale text URL"
+        assert saved(page)["plants"]=={}
     assert not errors,errors
     assert all(u.startswith(url) or u.startswith(("blob:","data:")) for u in requests),requests
     print(json.dumps({"profile":name,"viewport":[width,height],"journey":"PASS","png_bytes":len(png),"svg_bytes":len(svg.encode()),"page_errors":len(errors),"external_requests":0}),flush=True)

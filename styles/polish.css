@@ -16,3 +16,7 @@
 
 /* Status announcements never intercept interaction with underlying controls. */
 .notice{pointer-events:none}
+
+/* Prevent intrinsic SVG dimensions from overflowing the reserved nursery/tray artwork area. */
+.plant-art,.tray-art{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;flex:none;overflow:hidden}
+.plant-art svg,.tray-art svg{display:block;flex:0 1 auto;width:100%;height:100%;min-width:0;min-height:0;max-height:100%;overflow:hidden}
