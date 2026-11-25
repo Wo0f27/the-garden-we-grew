@@ -24,6 +24,7 @@ window.GARDEN_TEXT = {
   glassKicker: "Among the glass and vines",
   glassTitle: "A greenhouse of little treasures",
   glassIntro: "Bring the flowers you have grown inside and arrange them into something of your own.",
+  peachGlassInvite: "We’re here, my love! Tap the doors to open them. I’ll meet you inside!" ,
   enterGlass: "Enter the greenhouse",
   finalKicker: "At the end of the path",
   finalTitle: "A quiet place for two",

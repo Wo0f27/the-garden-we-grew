@@ -123,6 +123,11 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     assert page.locator("#peachNursery").evaluate('el=>el.previousElementSibling.id==="plants"&&el.closest("#nursery")!==null')
     go(page,"nursery","glassEntrance")
     expect(page.locator("#glassEntrance")).to_be_in_viewport()
+    expect(page.locator("#peachGlassGuide")).to_be_visible()
+    expect(page.locator("#glassPeachSticker")).to_have_attribute("src",PEACH_GIF)
+    expect(page.locator("#glassEntrance .scene-caption [data-scene-go=\"greenhouse\"]")).to_have_count(0)
+    expect(page.locator("#glassDoor")).to_be_visible()
+    expect(page.locator("#glassEntrance .scene-caption [data-scene-go=\"nursery\"]")).to_be_visible()
     go(page,"glassEntrance","nursery")
     assert page.locator("#distantGreenhouse").evaluate("""el=>{const p=new DOMPoint(300,241).matrixTransform(el.transform.baseVal.consolidate().matrix);return Math.abs(p.x-348)<.01&&Math.abs(p.y-172)<.01}"""), "greenhouse threshold does not meet path endpoint"
     assert page.locator("#gardenJourney").evaluate("(el)=>getComputedStyle(el).animationName")=="none"
@@ -140,7 +145,20 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     assert page.locator("#progress").evaluate("(el)=>el.value")==6
     fit(page)
     go(page,"nursery","glassEntrance")
-    go(page,"glassEntrance","greenhouse")
+    if reduce=="no-preference":
+        click(page,"#glassDoor")
+        expect(page.locator("#glassEntrance")).to_have_class(__import__("re").compile("glass-door-opening"))
+        expect(page.locator("#greenhouse")).to_be_hidden()
+        expect(page.locator("#petalTransition")).to_be_hidden()
+        expect(page.locator("#petalTransition")).to_be_visible()
+        only_scene(page,"greenhouse")
+        expect(page.locator("#petalTransition")).to_be_hidden()
+        assert not page.locator("#app").evaluate("el=>el.inert")
+    else:
+        page.locator("#glassDoor").focus()
+        page.keyboard.press("Enter")
+        only_scene(page,"greenhouse")
+        expect(page.locator("#petalTransition")).to_be_hidden()
     expect(page.locator("#arrangement")).to_have_count(0)
     expect(page.locator(".florist-room #bouquetArt")).to_be_visible()
     for id in SPECIES: click(page,f'#flowerTray button[data-id="{id}"][data-action="add"]')

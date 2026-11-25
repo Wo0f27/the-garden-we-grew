@@ -80,3 +80,16 @@ body>.masthead{flex:0 0 auto;width:100%;margin:0 auto;padding-top:max(12px,env(s
 @keyframes petal-sweep-in{from{opacity:0;transform:translate(-115vw,-45vh) rotate(calc(var(--rot) - 150deg)) scale(.7)}to{opacity:1;transform:translate(-50%,-50%) rotate(var(--rot)) scale(1)}}
 @keyframes petal-sweep-out{from{opacity:1;transform:translate(-50%,-50%) rotate(var(--rot)) scale(1)}to{opacity:0;transform:translate(110vw,50vh) rotate(calc(var(--rot) + 140deg)) scale(.7)}}
 @media(prefers-reduced-motion:reduce){.petal-transition{display:none!important}}
+
+/* 8.17: the greenhouse entrance is the actual interactive door, not a caption button. */
+#gardenJourney>#glassEntrance{grid-template-rows:auto minmax(0,1fr) auto;align-content:stretch}
+.glass-arrival{display:grid;grid-template-columns:minmax(0,1fr) minmax(135px,210px);align-items:center;gap:clamp(8px,2vw,20px);width:100%;max-width:1060px;min-width:0;min-height:0;height:100%}
+#glassEntrance .glass-arrival>.scene-picture{height:100%;max-height:450px;min-height:0;max-width:850px}
+.glass-guide{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0}
+.glass-peach{display:block;width:min(100%,115px);flex:none}.glass-peach img{display:block;width:100%;height:auto;max-height:100px;object-fit:contain}
+.glass-speech{background:var(--paper);border:1px solid var(--line);border-radius:13px;padding:10px 12px;min-width:0;color:var(--muted);font-size:.85rem;line-height:1.4}.glass-speech p{margin:0}.glass-speech .glass-speaker{font:italic 1.05rem Georgia,serif;color:#a76a7c;margin:0 0 4px}
+.glass-door-link{cursor:pointer;outline:none}.glass-door-hit{pointer-events:all}.glass-door-link:hover .glass-door-hit,.glass-door-link:focus-visible .glass-door-hit{stroke:#a76a7c;stroke-dasharray:5 3}.glass-door-link:focus-visible .glass-door-hit{stroke-width:4}
+#glassDoorLeft,#glassDoorRight{transition:transform .36s ease-in-out}.glass-door-opening #glassDoorLeft{transform:translateX(-38px)}.glass-door-opening #glassDoorRight{transform:translateX(38px)}
+@media(max-width:750px){.glass-arrival{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;gap:8px}.glass-guide{flex-direction:row;justify-content:center;gap:8px}.glass-peach{width:clamp(55px,17vw,80px)}.glass-peach img{max-height:68px}.glass-speech{font-size:.78rem;padding:7px 10px;max-width:290px}.glass-speech .glass-speaker{font-size:.96rem}}
+@media(max-height:420px){#gardenJourney>#glassEntrance{grid-template-rows:auto minmax(190px,1fr) auto;align-content:start}.glass-arrival{min-height:190px}}
+@media(prefers-reduced-motion:reduce){.glass-peach{display:none}#glassDoorLeft,#glassDoorRight{transition:none}}

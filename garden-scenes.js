@@ -12,6 +12,7 @@ const PETAL_COVER_MS=580,PETAL_HOLD_MS=90,PETAL_REVEAL_MS=580;
 function revealScene(id){
  for(const key of SCENES){const scene=el(key);scene.classList.remove("scene-leaving","scene-entering");scene.hidden=key!==id;}
  el("gardenClosing").hidden=id!=="finalGarden"||!letterRead;activeScene=id;
+ el("glassEntrance").classList.remove("glass-door-opening");
  el(id).scrollTop=0;
 }
 function buildTransitionPetals(){
@@ -48,14 +49,23 @@ function coverScene(){
   sceneTimer=setTimeout(finishSceneTransition,PETAL_REVEAL_MS);
  },PETAL_HOLD_MS);
 }
+function startPetalCurtain(){
+ if(!pendingScene)return;
+ if(reduce.matches||document.hidden){finishSceneTransition();return;}
+ buildTransitionPetals();
+ const overlay=el("petalTransition");overlay.hidden=false;overlay.dataset.phase="covering";scenePhase="covering";el("app").inert=true;
+ sceneTimer=setTimeout(coverScene,PETAL_COVER_MS);
+}
 function navigateScene(id){
  if(!gateOpen||gateWalking||pendingScene||!NEIGHBORS[activeScene]?.includes(id))return;
  if(activeScene==="finalGarden"&&(letterOpening||letterExtracting||letterOpen||letterUnsealed))closeLetter();
  pendingScene=id;
  if(reduce.matches||document.hidden){finishSceneTransition();return;}
- buildTransitionPetals();
- const overlay=el("petalTransition");overlay.hidden=false;overlay.dataset.phase="covering";scenePhase="covering";el("app").inert=true;
- sceneTimer=setTimeout(coverScene,PETAL_COVER_MS);
+ if(activeScene==="glassEntrance"&&id==="greenhouse"){
+  scenePhase="door-opening";el("app").inert=true;el("glassEntrance").classList.add("glass-door-opening");
+  sceneTimer=setTimeout(startPetalCurtain,380);return;
+ }
+ startPetalCurtain();
 }
 const base=(id,stage)=>({id,seed:M.seedFor(id),stage});
 function group(x,y,scale,markup){return '<g transform="translate('+x+' '+y+') scale('+scale+')">'+markup+'</g>';}
