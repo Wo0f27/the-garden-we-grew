@@ -53,7 +53,9 @@ window.GARDEN_TEXT = {
   arrangeHint: "Flowers arrange themselves into a fan. Change their order with the arrow buttons or remove any you don't want.",
   // Greenhouse workbench (Prototype 04)
   trayTitle: "Flowers from your garden",
-  trayHint: "Choose the blooms you want to bring to the workbench. Flowers that are still growing will wait here for you.",
+  trayHint: "Add blooms to the workbench. Use the arrows to change their order, or × to remove a flower. Flowers still growing will wait here.",
+  trayReady: "Ready to add",
+  finishBouquetTitle: "Finishing touches",
   trayGrowing: "Still growing",
   traySelected: "Selected",
   trayAdd: "Add",

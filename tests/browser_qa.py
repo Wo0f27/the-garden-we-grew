@@ -117,8 +117,22 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     fit(page)
     go(page,"nursery","glassEntrance")
     go(page,"glassEntrance","greenhouse")
-    for id in SPECIES: click(page,f'#flowerTray button[data-id="{id}"]')
+    expect(page.locator("#arrangement")).to_have_count(0)
+    expect(page.locator(".florist-room #bouquetArt")).to_be_visible()
+    for id in SPECIES: click(page,f'#flowerTray button[data-id="{id}"][data-action="add"]')
     assert len(saved(page)["bouquet"])==6
+    original_order=saved(page)["bouquet"]
+    click(page,'#flowerTray button[data-id="rose"][data-action="down"]')
+    assert saved(page)["bouquet"][:2]==[original_order[1],"rose"]
+    assert page.locator("#flowerTray .tray-selected").evaluate_all("els=>els.map(e=>e.dataset.flower)")==saved(page)["bouquet"]
+    click(page,'#flowerTray button[data-id="rose"][data-action="up"]')
+    assert saved(page)["bouquet"]==original_order
+    click(page,'#flowerTray button[data-id="rose"][data-action="remove"]')
+    assert "rose" not in saved(page)["bouquet"]
+    click(page,"#undoBouquet")
+    assert saved(page)["bouquet"]==original_order
+    expect(page.locator("#bouquetArt [data-flower]")).to_have_count(6)
+    page.locator(".live-workbench").screenshot(path=str(OUT/(name+"-workbench.png")),animations="disabled")
     click(page,"#editPosition")
     expect(page.locator("#bouquetArt .flower-handle")).to_have_count(6)
     page.locator("#positionFlower").select_option("rose")
@@ -133,6 +147,7 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     # A genuine browser pointer sequence. Desktop mouse and mobile touch via CDP.
     handle=page.locator('#bouquetArt [data-handle="rose"] .handle-ring')
     handle.scroll_into_view_if_needed()
+    page.wait_for_timeout(450)
     box=handle.bounding_box(); assert box
     x,y=box["x"]+box["width"]/2,box["y"]+box["height"]/2
     if mobile:

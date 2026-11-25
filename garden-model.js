@@ -198,7 +198,7 @@ function placementFromHead(plant,item,x,y){
  const lean=num((rng(plant.seed)()-.5)*25),dx=x-item.x,dy=Math.min(-1,y-item.y);
  return validPlacement({angle:(Math.atan2(dx,-dy)-Math.atan2(lean,120))*180/Math.PI,scale:Math.hypot(dx,dy)/Math.hypot(lean,120)});
 }
-function bouquetSvg(s,title){
+function bouquetSvg(s,title,{workbench=false}={}){
  const n=s.bouquet.length,wrapped=n>0&&s.wrapped;let plants="",extra="";
  const paper=wraps[s.wrap]||wraps.ivory,ribbon=ribbons[s.ribbon]||ribbons.rose;
  const pattern=s.paperStyle==="botanical"?'<pattern id="paperPattern" width="23" height="28" patternUnits="userSpaceOnUse"><path d="M5 26Q14 15 17 2M10 19Q2 17 3 10Q11 10 10 19M14 11Q21 11 21 5Q14 4 14 11" fill="none" stroke="#756a55" stroke-width=".9" opacity=".27"/></pattern>':s.paperStyle==="stripe"?'<pattern id="paperPattern" width="13" height="13" patternUnits="userSpaceOnUse" patternTransform="rotate(23)"><path d="M0 0V13" stroke="#fffaf1" stroke-width="3" opacity=".5"/></pattern>':"";
@@ -216,6 +216,7 @@ function bouquetSvg(s,title){
  front='<g class="wrap-left">'+paperShape(leftD,paper)+'</g><g class="wrap-right">'+paperShape(rightD,paper)+'</g><g class="wrap-tie"><path d="M169 331Q200 342 231 331L227 345Q200 355 173 345Z" fill="'+ribbon+'"/><path d="'+tails+'" fill="'+ribbon+'" stroke="#79565a" stroke-width=".7"/><path d="'+loops+'" fill="'+ribbon+'" stroke="#79565a" stroke-width="1"/><path d="'+loops+'" fill="url(#ribbonShine)"/><ellipse cx="201" cy="341" rx="8" ry="6" fill="'+ribbon+'" stroke="#79565a" stroke-width=".7"/></g>';
  }else if(n){front='<path d="M185 330Q200 336 215 330M185 334Q200 340 215 334" stroke="#af946b" stroke-width="2.8" fill="none"/>';}
  else front='<path d="M133 237Q200 260 267 237L219 376Q200 385 181 376Z" fill="#ede0cb" stroke="#c3b199" stroke-dasharray="5 4"/><path d="M177 338Q200 345 223 338" stroke="#bfa184" stroke-width="5" fill="none"/>';
+ if(workbench)return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 440" width="400" height="440" role="img" aria-label="'+escape(title)+'">'+defs+(n?back+extra+plants+front:"")+'</svg>';
  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 440" width="400" height="440" role="img" aria-label="'+escape(title)+'">'+defs+'<rect width="400" height="440" rx="12" fill="#fffaf0"/><path d="M24 406V137a176 112 0 0 1 352 0v269Z" fill="none" stroke="#c5a371" stroke-width="1.2"/><path d="M32 398V137a168 104 0 0 1 336 0v261Z" fill="none" stroke="#e2d3b6" stroke-width=".75"/>'+back+extra+plants+front+'<text x="200" y="420" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#54705a">'+escape(title)+'</text></svg>';
 }
 root.GardenModel={species,wraps,ribbons,fresh,normalize,plant,water,add,remove,move,seedFor,flowerMarkup,potSvg,bouquetSvg,paperStyles,ribbonStyles,setWrapped,bouquetLayout,setPlacement,clearPlacement,autoArrange,bouquetSnapshot,restoreBouquet,placementTransform,flowerHead,placementFromHead};

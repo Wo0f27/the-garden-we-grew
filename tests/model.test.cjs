@@ -33,3 +33,10 @@ assert.equal(M.setPlacement(s,id,{angle:10,scale:1.1}),true);assert.equal(M.remo
 assert.deepEqual(M.normalize({...s,placements:{[id]:{angle:Infinity,scale:2},unknown:{angle:10,scale:1.2}}}).placements,{});
 const planted=M.fresh();M.plant(planted,"rose");const empty=M.bouquetSnapshot(planted);M.water(planted,"rose");M.restoreBouquet(planted,empty);assert.equal(planted.plants.rose.stage,1);
 console.log("Prototype 07 position bounds, exact head inverse, migration, export, and bouquet-only history PASS.");
+
+// 8.12: the live workbench does not include the exported keepsake frame.
+{
+ const s=M.fresh();M.plant(s,"rose");for(let i=0;i<4;i++)M.water(s,"rose");M.add(s,"rose");
+ const live=M.bouquetSvg(s,"QA",{workbench:true}), exported=M.bouquetSvg(s,"QA");
+ if(!live.includes('data-flower="rose"')||live.includes('<text x="200" y="420"')||!exported.includes('<text x="200" y="420"'))throw Error("Workbench/keepsake rendering separation failed");
+}
