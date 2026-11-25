@@ -3,3 +3,27 @@
 
 /* 8.14: separate unseal, pull and full-size reading states. */
 .letter-unsealed .envelope-flap,.letter-extracting .envelope-flap{transform:scaleY(-.83);opacity:.82}.letter-unsealed .envelope-seal,.letter-extracting .envelope-seal{opacity:0;transform:scale(.55)}.letter-unsealed .envelope-insert{transform:translateY(-36px)}.letter-extracting .envelope-insert{transform:translateY(-115px);opacity:0;transition:transform .46s ease-in,opacity .46s ease-in}.letter-dialog{width:min(94vw,620px);max-height:90dvh;padding:0;border:0;background:transparent;overflow:auto;overscroll-behavior:contain;border-radius:4px;color:var(--ink)}.letter-dialog::backdrop{background:#37453899}.letter-dialog[open]{animation:letter-arrival .42s cubic-bezier(.22,.74,.32,1) both}.letter-dialog .letter-paper{margin:0;max-width:none;animation:none;box-shadow:none;outline:none}.letter-dialog .letter-paper:focus{outline:none}@keyframes letter-arrival{from{opacity:0;transform:translateY(25px) scale(.78)}to{opacity:1;transform:none}}@media(prefers-reduced-motion:reduce){.letter-dialog[open],.letter-extracting .envelope-insert{animation:none!important;transition:none!important}}
+
+/* 8.19: bounded envelope artwork, opaque rear flap and reversible paper animation. */
+#letterStation .envelope-art,#letterStation .envelope-art svg{overflow:hidden}
+#letterStation .envelope-flap-front{transform-box:fill-box;transform-origin:top center;transform:scaleY(1);opacity:1;transition:transform .22s .22s ease-in-out}
+#letterStation .envelope-flap-back{transform-box:fill-box;transform-origin:bottom center;transform:scaleY(0);opacity:1;transition:transform .22s ease-in-out}
+#letterStation:is(.letter-opening,.letter-unsealed,.letter-extracting,.letter-open,.letter-reinserting) .envelope-flap-front{transform:scaleY(0);transition:transform .22s ease-in-out}
+#letterStation:is(.letter-opening,.letter-unsealed,.letter-extracting,.letter-open,.letter-reinserting) .envelope-flap-back{transform:scaleY(1);transition:transform .22s .22s ease-in-out}
+#letterStation .envelope-insert{transform:translateY(0);opacity:1;visibility:visible;transition:transform .46s ease-in-out}
+#letterStation.letter-opening .envelope-insert{transform:translateY(-36px);transition-delay:.44s}
+#letterStation.letter-unsealed .envelope-insert{transform:translateY(-36px)}
+#letterStation.letter-extracting .envelope-insert{transform:translateY(-110px);opacity:1;transition:transform .53s ease-in-out}
+#letterStation.letter-open .envelope-insert{transform:translateY(-110px);visibility:hidden;transition:none}
+#letterStation.letter-reinserting .envelope-insert{transform:translateY(0);visibility:visible;transition:transform .46s ease-in-out}
+#letterStation.letter-reinserting .envelope-seal{opacity:0;transform:scale(.55)}
+#letterStation .envelope-button[aria-disabled="true"]{cursor:default;pointer-events:none}
+.letter-dialog[open]{animation:none;transform-origin:center center}
+.letter-fold-sheet{display:none;position:absolute;inset:0;background:linear-gradient(180deg,#fcf6e9,#f4e5cb 33%,#fff9ed 34%,#f4e6cd 66%,#fffaee 67%,#f8edda);border:1px solid #c7ae86;border-radius:4px;pointer-events:none;overflow:hidden}
+.fold-crease{position:absolute;left:5%;right:5%;height:1px;background:#bca17e;box-shadow:0 2px 5px #9a785b50}.fold-crease-one{top:33.33%}.fold-crease-two{top:66.66%}.fold-heart{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font:clamp(28px,8vw,55px) Georgia,serif;color:#bb8495}
+.letter-dialog[data-paper-phase]{overflow:hidden;pointer-events:none}
+.letter-dialog[data-paper-phase] .letter-paper{visibility:hidden}
+.letter-dialog[data-paper-phase] .letter-fold-sheet{display:block}
+.letter-dialog[data-paper-phase="unfolding"] .letter-fold-sheet{animation:crease-release .78s ease both}
+@keyframes crease-release{0%,42%{filter:brightness(.94)}100%{filter:brightness(1)}}
+@media(prefers-reduced-motion:reduce){#letterStation .envelope-flap-front,#letterStation .envelope-flap-back,#letterStation .envelope-insert,.letter-dialog[data-paper-phase] .letter-fold-sheet{animation:none!important;transition:none!important}}
