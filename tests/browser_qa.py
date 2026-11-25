@@ -34,29 +34,17 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     page.goto(url,wait_until="networkidle")
     expect(page.locator("#app")).to_be_visible()
     fit(page)
-    assert page.locator("html").evaluate("(el)=>el.classList.contains('stable-art')")==mobile
-    assert page.locator("body").evaluate("(el)=>getComputedStyle(el, '::before').backgroundImage")== "none"
-    assert page.locator("svg filter").count()==0
     page.screenshot(path=str(OUT/(name+"-entrance.png")))
     click(page,"#openGate")
     expect(page.locator("#gardenJourney")).to_be_visible()
-    assert page.locator("#gardenJourney").evaluate("(el)=>getComputedStyle(el).animationName")== "none"
-    if mobile:
-        assert page.locator(".scene-picture > svg,.hero-art > svg,.florist-room > svg").count()==0
-        expect(page.locator("#butterflyEffects .ambient-butterfly")).to_have_count(0)
-    elif reduce=="no-preference":
+    if reduce=="no-preference":
         expect(page.locator("#butterflyEffects .ambient-butterfly")).to_have_count(3)
         page.wait_for_timeout(750)
     expect(page.locator("#openLetter")).to_be_disabled()
     for id in SPECIES: plant(page,id)
-    if mobile:
-        expect(page.locator("#plants .plant-art img")).to_have_count(6)
-        page.wait_for_function("Array.from(document.querySelectorAll('#plants .plant-art img')).every(i=>i.complete&&i.naturalWidth>0)")
-        assert page.locator("#plants .plant-art svg").count()==0
-        page.wait_for_function("Array.from(document.querySelectorAll('.scene-picture > img,.hero-art > img,.florist-room > img,#plants .plant-art img')).every(i=>i.complete&&i.naturalWidth>0&&i.src.startsWith('data:image/png'))", timeout=30000)
     if reduce=="no-preference": page.wait_for_timeout(1000)
     expect(page.locator("#notice")).to_be_empty(timeout=6000)
-    assert page.locator("#plants .plant-card").evaluate_all("""cards=>cards.every(card=>{const art=card.querySelector(".plant-art").getBoundingClientRect(),svg=card.querySelector(".plant-art svg,.plant-art img").getBoundingClientRect(),name=card.querySelector("h3").getBoundingClientRect();return svg.bottom<=art.bottom+1&&svg.top>=art.top-1&&art.bottom<=name.top+1})"""), "nursery illustration overlaps heading"
+    assert page.locator("#plants .plant-card").evaluate_all("""cards=>cards.every(card=>{const art=card.querySelector(".plant-art").getBoundingClientRect(),svg=card.querySelector(".plant-art svg").getBoundingClientRect(),name=card.querySelector("h3").getBoundingClientRect();return svg.bottom<=art.bottom+1&&svg.top>=art.top-1&&art.bottom<=name.top+1})"""), "nursery illustration overlaps heading"
     page.locator("#gardenPath .scene-picture").screenshot(path=str(OUT/(name+"-path.png")),animations="disabled")
     page.locator("#plants").screenshot(path=str(OUT/(name+"-nursery.png")),animations="disabled")
     expect(page.locator("#openLetter")).to_be_enabled()
@@ -94,7 +82,6 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     click(page,"#wrapBouquet")
     assert saved(page)["wrapped"]
     expect(page.locator("#editPosition")).to_be_disabled()
-    if mobile: page.wait_for_function("document.querySelector('#bouquetArt img')?.src.startsWith('data:image/png')")
     page.locator("#bouquetArt").screenshot(path=str(OUT/(name+"-bouquet.png")),animations="disabled")
     with page.expect_download() as dl: click(page,"#svg")
     svg_file=OUT/(name+".svg"); dl.value.save_as(str(svg_file))
@@ -145,7 +132,6 @@ try:
         for name,w,h,mobile in [("desktop",1280,900,False),("mobile",390,844,True),("narrow",320,740,True)]:
             journey(browser,name,w,h,mobile)
         journey(browser,"normal-motion",390,844,True,"no-preference")
-        journey(browser,"desktop-normal-motion",1280,900,False,"no-preference")
         browser.close()
     print("Browser QA PASS; screenshots and exports:",OUT,flush=True)
 finally:

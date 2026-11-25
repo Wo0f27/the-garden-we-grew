@@ -20,32 +20,3 @@
 /* Prevent intrinsic SVG dimensions from overflowing the reserved nursery/tray artwork area. */
 .plant-art,.tray-art{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;flex:none;overflow:hidden}
 .plant-art svg,.tray-art svg{display:block;flex:0 1 auto;width:100%;height:100%;min-width:0;min-height:0;max-height:100%;overflow:hidden}
-
-/* 08.3 Android/mobile compatibility: avoid long-lived compositing layers,
-   frequent inline SVG replacement and filtered/animated scene surfaces. */
-.stable-art{scroll-behavior:auto}
-.stable-art .plant-art img,.stable-art .tray-art img{display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;min-width:0;min-height:0;flex:0 1 auto}
-.stable-art .plant-art img{max-width:210px}
-.stable-art #gateLeft,.stable-art #gateRight,.stable-art .envelope-flap,.stable-art .envelope-insert,.stable-art .envelope-seal{transition:none!important;transform:none!important}
-.stable-art .gate-open #gateLeft,.stable-art .gate-open #gateRight{visibility:hidden}
-.stable-art .letter-open .envelope-flap,.stable-art .letter-opening .envelope-flap{visibility:hidden}
-.stable-art .letter-paper,.stable-art .garden-letter,.stable-art .growth-reveal,.stable-art .growth-reveal svg,.stable-art .wrap-sequence g{animation:none!important}
-.stable-art .envelope-art{perspective:none}
-.stable-art .scene-effects i,.stable-art .scene-effects span{animation:none!important;transform:none!important;box-shadow:none}
-.stable-art .ambient-petal{top:32%;opacity:.68}
-.stable-art .ambient-firefly{opacity:.7}
-.stable-art button:hover,.stable-art .button:hover{filter:none}
-
-/* 08.4 — mobile raster rendering and flat, non-composited document flow. */
-.stable-art body{background:#f5edde}
-.stable-art *, .stable-art *::before,.stable-art *::after{box-shadow:none!important;text-shadow:none!important;animation:none!important;transition:none!important;filter:none!important}
-.stable-art .scene-effects{display:none}
-.stable-art .scene-picture,.stable-art .florist-room{border-radius:8px;overflow:visible;background:#e7eadc}
-.stable-art .plant-card,.stable-art .plant-art,.stable-art .letter-paper{background:#fffaf0}
-.stable-art .plant-card,.stable-art .bouquet-paper,.stable-art .closing{border-radius:12px}
-.stable-art .raster-art{display:block;max-width:100%;width:100%;height:auto;object-fit:contain}
-.stable-art .hero-art img{max-height:245px}
-.stable-art .scene-picture img{max-height:450px}
-.stable-art .bouquet-art img{max-height:390px}
-.stable-art .plant-art img,.stable-art .tray-art img{height:100%;max-height:100%;width:100%}
-.stable-art .notice{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);transform:none;padding:0;left:0;bottom:auto}

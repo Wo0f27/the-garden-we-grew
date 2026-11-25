@@ -40,7 +40,7 @@ function bed(side,width,y,seed,growth,scale=1){
  return out;
 }
 function wash(id,seed){
- let out='<g opacity=".14">';for(let i=0;i<16;i++){const x=rand(seed+i*83)*600,y=178+rand(seed+i*157)*142,rx=13+rand(seed+i*223)*31;if(x>225&&x<420)continue;out+='<ellipse cx="'+round(x)+'" cy="'+round(y)+'" rx="'+round(rx)+'" ry="'+round(rx*.35)+'" fill="'+greens[i%greens.length]+'"/>';}return out+'</g>';
+ let out='<g filter="url(#'+id+')" opacity=".17">';for(let i=0;i<16;i++){const x=rand(seed+i*83)*600,y=178+rand(seed+i*157)*142,rx=13+rand(seed+i*223)*31;if(x>225&&x<420)continue;out+='<ellipse cx="'+round(x)+'" cy="'+round(y)+'" rx="'+round(rx)+'" ry="'+round(rx*.35)+'" fill="'+greens[i%greens.length]+'"/>';}return out+'</g>';
 }
 function treeCanopy(grown){
  let out="";const clusters=[[93,87,24],[121,65,28],[153,65,35],[189,55,27],[220,68,31],[251,91,28],[144,99,37],[183,95,38],[215,113,32],[105,122,24],[269,125,23],[161,131,29]];
