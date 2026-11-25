@@ -6,17 +6,17 @@
 <meta name="theme-color" content="#f5edde">
 <title>The Garden We Grew</title>
 <link rel="stylesheet" href="styles/garden.css">
-<link rel="stylesheet" href="styles/scenery.css?v=8.5">
+<link rel="stylesheet" href="styles/scenery.css?v=8.6">
 <link rel="stylesheet" href="styles/greenhouse.css?v=7">
 <link rel="stylesheet" href="styles/finale.css?v=6">
 <link rel="stylesheet" href="styles/polish.css?v=8.2">
 <script defer src="garden-model.js?v=7"></script>
 <script defer src="garden-landscape.js?v=5"></script>
-<script defer src="garden-scenes.js?v=8.5"></script>
+<script defer src="garden-scenes.js?v=8.6"></script>
 <script defer src="garden.js?v=8.1"></script>
 </head>
 <body>
-<header class="masthead"><span class="monogram" aria-hidden="true">✿</span><span data-copy="brand">The Garden We Grew</span><span class="edition">Prototype 08.5</span></header>
+<header class="masthead"><span class="monogram" aria-hidden="true">✿</span><span data-copy="brand">The Garden We Grew</span><span class="edition">Prototype 08.6</span></header>
 <main id="app" hidden>
 <section class="intro">
 <div class="intro-copy"><p class="kicker" data-copy="eyebrow"></p><h1 data-copy="title"></h1><p class="intro-description" data-copy="intro"></p><button type="button" id="openGate" class="button primary" aria-controls="gardenPath" aria-expanded="false" data-copy="enter"></button></div>
@@ -37,7 +37,7 @@
 <div id="gardenJourney" hidden>
 <section id="gardenPath" class="scene path-scene" tabindex="-1" aria-labelledby="pathTitle">
  <div class="scene-heading"><p class="kicker" data-copy="pathKicker"></p><h2 id="pathTitle" data-copy="pathTitle"></h2><p data-copy="pathIntro"></p></div>
- <div class="scene-picture"><svg viewBox="0 0 600 320" role="img" aria-label="A winding garden path with flowers growing beside it" xmlns="http://www.w3.org/2000/svg">
+ <div class="scene-picture"><svg id="pathCamera" viewBox="0 0 600 320" role="img" aria-label="A winding garden path with flowers growing beside it" xmlns="http://www.w3.org/2000/svg">
  <defs><filter id="pathPigment" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".022" numOctaves="1" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="2.2"/><feGaussianBlur stdDeviation=".18"/></filter><linearGradient id="pathSky" x2="0" y2="1"><stop stop-color="#e7eee1"/><stop offset="1" stop-color="#f6dfc9"/></linearGradient><linearGradient id="pathGround" x2="0" y2="1"><stop stop-color="#a9bb98"/><stop offset="1" stop-color="#789176"/></linearGradient></defs>
  <rect width="600" height="320" fill="url(#pathSky)"/><circle cx="452" cy="69" r="33" fill="#fff1ce"/><path d="M0 167Q110 78 228 157T600 132V320H0Z" fill="#c0cead"/><path d="M0 205Q175 130 301 190T600 175V320H0Z" fill="url(#pathGround)"/><path d="M235 320Q365 253 304 219Q270 197 336 172L360 172Q309 198 331 214Q415 250 415 320Z" fill="#e7d0ae"/><path d="M260 312L381 312M284 288L373 283M308 265L357 259M322 241L335 239" stroke="#bdab8c" stroke-width="1.5" opacity=".7"/>
  <g fill="#6e896b" stroke="#566e58" stroke-width="1.3"><path d="M38 233V103Q38 79 60 71Q76 49 98 74Q125 75 126 104Q138 132 110 148H82V233Z"/><path d="M497 225V108Q474 83 508 62Q527 32 553 58Q590 61 577 94Q590 122 551 137H529V225Z"/></g>

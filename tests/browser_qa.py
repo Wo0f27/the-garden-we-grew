@@ -35,6 +35,8 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     expect(page.locator("#app")).to_be_visible()
     fit(page)
     page.screenshot(path=str(OUT/(name+"-entrance.png")))
+    # Capture the destination viewBox at the instant the journey becomes visible.
+    page.evaluate("""()=>{window.qaArrivalWidth=null;const journey=document.querySelector("#gardenJourney");new MutationObserver((changes,observer)=>{if(!journey.hidden){window.qaArrivalWidth=document.querySelector("#pathCamera").viewBox.baseVal.width;observer.disconnect()}}).observe(journey,{attributes:true,attributeFilter:["hidden"]})}""")
     click(page,"#openGate")
     if reduce=="no-preference":
         expect(page.locator("#openGate")).to_have_attribute("aria-disabled","true")
@@ -44,6 +46,16 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
         page.locator("#gateCamera").screenshot(path=str(OUT/(name+"-gate-zoom.png")))
         page.evaluate("document.querySelector('#openGate').click()")
     expect(page.locator("#gardenJourney")).to_be_visible()
+    if reduce=="no-preference":
+        assert 165 < page.evaluate("window.qaArrivalWidth") < 168, "destination did not arrive zoomed in"
+        page.wait_for_function("""()=>{const w=document.querySelector("#pathCamera").viewBox.baseVal.width;return w>210&&w<550}""")
+        expect(page.locator("#openGate")).to_have_attribute("aria-disabled","true")
+        page.locator("#pathCamera").screenshot(path=str(OUT/(name+"-path-pullback.png")))
+        page.evaluate("document.querySelector('#openGate').click()")
+    else:
+        assert page.evaluate("window.qaArrivalWidth")==600, "reduced-motion arrival zoomed"
+    expect(page.locator("#pathCamera")).to_have_attribute("viewBox","0 0 600 320")
+    expect(page.locator("#openGate")).not_to_have_attribute("aria-disabled","true")
     expect(page.locator("#openGate")).to_have_attribute("aria-expanded","true")
     expect(page.locator("#gateCamera")).to_have_attribute("viewBox","0 0 360 330")
     assert page.locator("#gardenJourney").evaluate("(el)=>getComputedStyle(el).animationName")=="none"
@@ -111,6 +123,8 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     click(page,"#closeLetter")
     expect(page.locator("#gardenLetter")).to_be_hidden()
     page.reload(wait_until="networkidle");click(page,"#openGate")
+    expect(page.locator("#gardenJourney")).to_be_visible()
+    expect(page.locator("#openGate")).not_to_have_attribute("aria-disabled","true")
     assert saved(page)==snapshot
     expect(page.locator("#openLetter")).to_be_enabled()
     expect(page.locator("#undoBouquet")).to_be_disabled()
@@ -132,6 +146,13 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
         new_url=next(u for u in reversed(requests) if "garden-text.js?v=" in u)
         assert old_url!=new_url, "stale text URL"
         assert saved(page)["plants"]=={}
+        # Interrupt a second arrival by enabling reduced motion mid-pullback.
+        click(page,"#openGate")
+        page.wait_for_function("""()=>{const w=document.querySelector("#pathCamera").viewBox.baseVal.width;return w>180&&w<550}""")
+        page.emulate_media(reduced_motion="reduce")
+        expect(page.locator("#pathCamera")).to_have_attribute("viewBox","0 0 600 320")
+        expect(page.locator("#openGate")).not_to_have_attribute("aria-disabled","true")
+        expect(page.locator("#gardenJourney")).to_be_visible()
     assert not errors,errors
     assert all(u.startswith(url) or u.startswith(("blob:","data:")) for u in requests),requests
     print(json.dumps({"profile":name,"viewport":[width,height],"journey":"PASS","png_bytes":len(png),"svg_bytes":len(svg.encode()),"page_errors":len(errors),"external_requests":0}),flush=True)

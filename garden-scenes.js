@@ -4,7 +4,7 @@
 "use strict";
 const M=window.GardenModel,L=window.GardenLandscape,el=id=>document.getElementById(id);
 const reduce=window.matchMedia("(prefers-reduced-motion: reduce)");
-let initialized=false, gateOpen=false, gateWalking=false, gateFrame=0, letterOpen=false, letterOpening=false, letterTimer=0, letterReady=false, gateTimer=0, lastSignature="", lastBloomCount=-1, copy;
+let initialized=false, gateOpen=false, gateWalking=false, gateArriving=false, gateFrame=0, letterOpen=false, letterOpening=false, letterTimer=0, letterReady=false, gateTimer=0, lastSignature="", lastBloomCount=-1, copy;
 const base=(id,stage)=>({id,seed:M.seedFor(id),stage});
 function group(x,y,scale,markup){return '<g transform="translate('+x+' '+y+') scale('+scale+')">'+markup+'</g>';}
 function gardenFlowers(target,state,locations){
@@ -28,37 +28,64 @@ function motion(){
   const target=el(id);if(reduce.matches)target.replaceChildren();else ambient(target,kind,count);
  }
 }
-// Entrance camera: animate only the existing 360×330 illustration's viewBox.
-const GATE_WIDE="0 0 360 330", GATE_CLOSE=[148,162,100,100*330/360];
+// Match the entrance's final 3.6x zoom on the destination path, then pull back.
+// Only two bounded SVG cameras move; the document and its text never scale.
+const GATE_WIDE=[0,0,360,330],GATE_CLOSE=[148,162,100,100*330/360];
+const PATH_WIDE=[0,0,600,320],PATH_CLOSE=[244,191,600/3.6,320/3.6];
+const setCamera=(camera,box)=>camera.setAttribute("viewBox",box.join(" "));
+function showPath(){
+ if(!el("gardenJourney").hidden)return;
+ el("gardenJourney").hidden=false;
+ el("openGate").setAttribute("aria-expanded","true");
+ const path=el("gardenPath");
+ path.focus({preventScroll:true});path.scrollIntoView({behavior:"instant",block:"start"});
+ setCamera(el("gateCamera"),GATE_WIDE);
+}
 function finishGate(){
  if(!gateWalking)return;
- clearTimeout(gateTimer);cancelAnimationFrame(gateFrame);gateWalking=false;gateOpen=true;
- const b=el("openGate"),path=el("gardenPath");
+ clearTimeout(gateTimer);
+ if(typeof cancelAnimationFrame==="function")cancelAnimationFrame(gateFrame);
+ setCamera(el("pathCamera"),PATH_WIDE);
+ showPath();
+ gateWalking=false;gateArriving=false;gateOpen=true;
+ const b=el("openGate");
  b.removeAttribute("aria-disabled");b.setAttribute("aria-expanded","true");b.textContent=copy.gateOpened;
- el("gardenJourney").hidden=false;
- path.focus({preventScroll:true});path.scrollIntoView({behavior:"instant",block:"start"});
- // Restore the wide entrance once we have crossed, so returning to it is natural.
- el("gateCamera").setAttribute("viewBox",GATE_WIDE);
+ document.body.classList.remove("gate-arriving");
  motion();
 }
-function walkThrough(){
- if(!gateWalking)return;
- if(reduce.matches||document.hidden){finishGate();return;}
- const camera=el("gateCamera"),start=[0,0,360,330];let first=null,last=-Infinity;
+function animateCamera(camera,from,to,duration,done){
+ let first=null,last=-Infinity;
  function frame(now){
   if(!gateWalking)return;
   if(reduce.matches||document.hidden){finishGate();return;}
   if(first===null)first=now;
-  const t=Math.min(1,(now-first)/1100);
+  const t=Math.min(1,(now-first)/duration);
   if(now-last>=32||t===1){
    const eased=t*t*(3-2*t);
-   camera.setAttribute("viewBox",start.map((v,i)=>(v+(GATE_CLOSE[i]-v)*eased).toFixed(3)).join(" "));
+   if(t===1)setCamera(camera,to);
+   else camera.setAttribute("viewBox",from.map((v,i)=>(v+(to[i]-v)*eased).toFixed(3)).join(" "));
    last=now;
   }
-  if(t<1)gateFrame=requestAnimationFrame(frame);
-  else gateTimer=setTimeout(finishGate,130);
+  if(t<1)gateFrame=requestAnimationFrame(frame);else done();
  }
  gateFrame=requestAnimationFrame(frame);
+}
+function arriveThroughGate(){
+ if(!gateWalking||gateArriving)return;
+ if(reduce.matches||document.hidden){finishGate();return;}
+ gateArriving=true;
+ const camera=el("pathCamera");
+ // Set the close-up before revealing the section, so there is no wide-view flash.
+ setCamera(camera,PATH_CLOSE);
+ document.body.classList.add("gate-arriving");
+ showPath();
+ // Keep the first arriving frame for a short beat before the pullback.
+ gateTimer=setTimeout(()=>animateCamera(camera,PATH_CLOSE,PATH_WIDE,1250,finishGate),100);
+}
+function walkThrough(){
+ if(!gateWalking)return;
+ if(reduce.matches||document.hidden){finishGate();return;}
+ animateCamera(el("gateCamera"),GATE_WIDE,GATE_CLOSE,1100,()=>{gateTimer=setTimeout(arriveThroughGate,130);});
 }
 function openGate(){
  if(gateWalking)return;

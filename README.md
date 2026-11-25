@@ -34,3 +34,6 @@ Prototype 02 adapts MIT-licensed yZhanWeather motion techniques. Prototype 03 ad
 
 ## Gate walkthrough (8.5, based on restored 8.2)
 The entrance doors open first (820ms), then the camera moves toward the path through the arch (1100ms), holds briefly and reveals the garden. Only the entrance SVG viewBox changes, at a bounded frame-update rate; the previous full-journey animation is replaced by an immediate handoff. The wide view is restored after crossing. Repeated taps are ignored during the sequence; reduced motion, hidden tabs and unavailable animation frames take the immediate route. No saved-state, flower, bouquet, letter or personal-copy changes. Physical-device graphics issues previously reported on 8.2 remain unresolved; this is a requested entrance effect, not a compatibility fix.
+
+## Continuous arrival (8.6)
+The gate walkthrough now hands off to a matching 3.6× close-up of the path before the garden is revealed. A 100ms pause and 1250ms eased pullback reveal the full 600×320 illustration. The entire sequence takes about 3.4 seconds, and only the two SVG viewBoxes change (no whole-page zoom). Repeated taps remain guarded until the pullback ends. Reduced motion and hidden-tab interruption settle directly to the normal full garden view. Physical-device rendering remains unverified.
