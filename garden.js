@@ -156,9 +156,58 @@ function act(e){const b=e.target.closest("button[data-action]");if(!b||b.disable
 function download(blob,filename){const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
 function svgBlob(){return new Blob([M.bouquetSvg(state,copy.brand)],{type:"image/svg+xml;charset=utf-8"});}
 function saveSvg(){if(state.bouquet.length)download(svgBlob(),"our-garden-bouquet.svg");}
+const mobileSave=()=>navigator.userAgentData?.mobile===true||/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)||matchMedia("(pointer: coarse)").matches||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+let exportFile=null,exportGeneration=0;
+function showSaveDialog(){
+ const dialog=el("saveImageDialog");exportFile=null;
+ const img=el("savedBouquetImage"),link=el("downloadBouquetImage");
+ img.hidden=true;img.removeAttribute("src");link.hidden=true;link.removeAttribute("href");el("shareBouquetImage").hidden=true;el("saveImageStatus").textContent=copy.imagePreparing;
+ if(!dialog.open)dialog.showModal();dialog.scrollTop=0;
+}
+function fileFromData(data,filename){
+ const split=data.indexOf(","),type=data.slice(5,split).split(";")[0],raw=data.slice(split+1);
+ const bytes=data.slice(0,split).includes(";base64")?Uint8Array.from(atob(raw),c=>c.charCodeAt(0)):new TextEncoder().encode(decodeURIComponent(raw));
+ return new File([bytes],filename,{type});
+}
+function shareSupported(file){
+ try{return !!file&&typeof navigator.share==="function"&&typeof navigator.canShare==="function"&&navigator.canShare({files:[file]});}catch{return false;}
+}
+function showExport(data,filename,isPng){
+ const img=el("savedBouquetImage"),link=el("downloadBouquetImage");
+ img.src=data;img.hidden=false;link.href=data;link.download=filename;link.textContent=isPng?copy.downloadImage:copy.downloadSvgImage;link.hidden=false;
+ try{exportFile=fileFromData(data,filename);}catch{exportFile=null;}
+ el("shareBouquetImage").hidden=!shareSupported(exportFile);
+ el("saveImageStatus").textContent=isPng?"":copy.imageSvgFallback;
+}
+async function shareExport(){
+ if(!shareSupported(exportFile))return;
+ // This call happens directly in a fresh tap, after conversion has finished.
+ try{await navigator.share({files:[exportFile],title:copy.brand});}
+ catch(err){if(err?.name!=="AbortError")el("saveImageStatus").textContent=copy.imageShareFailed;}
+}
+function closeSaveDialog(){
+ exportGeneration++;exportFile=null;el("savedBouquetImage").removeAttribute("src");el("downloadBouquetImage").removeAttribute("href");
+}
 async function savePng(){
- if(!state.bouquet.length||pngBusy)return;pngBusy=true;const b=el("png");b.disabled=true;const url=URL.createObjectURL(svgBlob());
- try{const img=new Image();await new Promise((ok,no)=>{img.onload=ok;img.onerror=no;img.src=url;});const canvas=document.createElement("canvas");canvas.width=1200;canvas.height=1320;const ctx=canvas.getContext("2d");if(!ctx)throw Error("Canvas unavailable");ctx.drawImage(img,0,0,1200,1320);const blob=await new Promise((ok,no)=>canvas.toBlob(v=>v?ok(v):no(Error("PNG unavailable")),"image/png"));download(blob,"our-garden-bouquet.png");tell(copy.exportReady);}catch{tell(copy.exportFailed);}finally{URL.revokeObjectURL(url);pngBusy=false;b.disabled=!state.bouquet.length;}
+ if(!state.bouquet.length||pngBusy)return;
+ pngBusy=true;const b=el("png"),mobile=mobileSave(),generation=++exportGeneration;b.disabled=true;
+ // A self-contained SVG data URL avoids mobile WebView blob-image decoding failures.
+ const svgData="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(M.bouquetSvg(state,copy.brand));
+ if(mobile)showSaveDialog();
+ try{
+  const img=new Image();
+  await new Promise((ok,no)=>{const timer=setTimeout(()=>no(Error("Image decode timed out")),8000);img.onload=()=>{clearTimeout(timer);ok();};img.onerror=()=>{clearTimeout(timer);no(Error("Image decode failed"));};img.src=svgData;});
+  const canvas=document.createElement("canvas");canvas.width=1200;canvas.height=1320;const ctx=canvas.getContext("2d");
+  if(!ctx)throw Error("Canvas unavailable");ctx.drawImage(img,0,0,1200,1320);
+  const data=canvas.toDataURL("image/png");if(!data.startsWith("data:image/png;base64,")||data.length<100)throw Error("PNG unavailable");
+  if(generation!==exportGeneration)return;
+  if(mobile){showExport(data,"our-garden-bouquet.png",true);}
+  else{download(fileFromData(data,"our-garden-bouquet.png"),"our-garden-bouquet.png");tell(copy.exportReady);}
+ }catch{
+  if(generation!==exportGeneration)return;
+  if(!mobile)showSaveDialog();
+  showExport(svgData,"our-garden-bouquet.svg",false);
+ }finally{pngBusy=false;b.disabled=!state.bouquet.length;}
 }
 function fillOptions(id,options){for(const [value,label] of Object.entries(options)){const o=node("option","",label);o.value=value;el(id).append(o);}}
 async function start(){
@@ -182,6 +231,9 @@ async function start(){
  const art=el("bouquetArt");art.addEventListener("pointerdown",beginDrag);art.addEventListener("pointermove",moveDrag);art.addEventListener("pointerup",e=>finishDrag(e,true));art.addEventListener("pointercancel",e=>finishDrag(e,false));art.addEventListener("lostpointercapture",e=>finishDrag(e,false));
  window.addEventListener("blur",()=>cancelDrag(true));document.addEventListener("visibilitychange",()=>{if(document.hidden)cancelDrag(true);});
  el("png").addEventListener("click",savePng);el("svg").addEventListener("click",saveSvg);
+ el("shareBouquetImage").addEventListener("click",shareExport);
+ el("closeImageDialog").addEventListener("click",()=>el("saveImageDialog").close());
+ el("saveImageDialog").addEventListener("close",closeSaveDialog);
  el("reset").addEventListener("click",()=>{if(!confirm(copy.resetConfirm))return;cancelDrag();undoStack=[];redoStack=[];paperPreview=false;editMode=false;selectedFlower=null;state=M.fresh();persist();render();tell(copy.resetDone);});
  if(window.GardenScenes)window.GardenScenes.init(copy);
  el("openLetter").addEventListener("click",clearNotice);

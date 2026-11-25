@@ -143,6 +143,16 @@ window.GARDEN_TEXT = {
   savePng: "Save as image",
   saveSvg: "Save as SVG",
   exportHint: "The keepsake is created entirely on this device. Nothing is uploaded.",
+  saveImageTitle: "Keep your bouquet",
+  saveImageInstructions: "Press and hold the picture to save it to your phone, or use Download or Share below. If your in-app browser blocks saving, open the garden in your regular browser.",
+  saveImageAlt: "Your bouquet keepsake",
+  imagePreparing: "Preparing your bouquet…",
+  shareImage: "Share / Save to phone",
+  downloadImage: "Download PNG",
+  downloadSvgImage: "Download SVG",
+  closeImagePreview: "Back to your bouquet",
+  imageSvgFallback: "This browser could not create a PNG. Your original bouquet is still available as an SVG.",
+  imageShareFailed: "Sharing is unavailable here. Try pressing and holding the picture or using Download.",
   visitBench: "Continue to the garden bench",
 
   // =====================================================================

@@ -245,8 +245,24 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     svg_file=OUT/(name+".svg"); dl.value.save_as(str(svg_file))
     svg=svg_file.read_text()
     assert "<svg" in svg and "wrap-tie" in svg and "position-handles" not in svg
-    with page.expect_download() as dl: click(page,"#png")
-    png_file=OUT/(name+".png"); dl.value.save_as(str(png_file))
+    if mobile:
+        # Force a share-capable mobile browser, then verify the actual File payload.
+        page.evaluate("""()=>{Object.defineProperty(navigator,'canShare',{configurable:true,value:({files})=>files?.[0]?.type==='image/png'});Object.defineProperty(navigator,'share',{configurable:true,value:async({files})=>{const b=new Uint8Array(await files[0].arrayBuffer());window.qaShared={name:files[0].name,type:files[0].type,magic:Array.from(b.slice(0,8))}}})}""")
+        click(page,"#png")
+        expect(page.locator("#saveImageDialog")).to_be_visible()
+        expect(page.locator("#savedBouquetImage")).to_be_visible()
+        page.wait_for_function("()=>document.querySelector('#savedBouquetImage').naturalWidth===1200")
+        assert page.locator("#savedBouquetImage").evaluate("el=>el.naturalHeight===1320&&el.src.startsWith('data:image/png;base64,')")
+        click(page,"#shareBouquetImage")
+        page.wait_for_function("()=>!!window.qaShared")
+        assert page.evaluate("window.qaShared")=={"name":"our-garden-bouquet.png","type":"image/png","magic":[137,80,78,71,13,10,26,10]}
+        with page.expect_download() as dl: click(page,"#downloadBouquetImage")
+        png_file=OUT/(name+".png");dl.value.save_as(str(png_file))
+        click(page,"#closeImageDialog")
+        expect(page.locator("#saveImageDialog")).to_be_hidden()
+    else:
+        with page.expect_download() as dl: click(page,"#png")
+        png_file=OUT/(name+".png"); dl.value.save_as(str(png_file))
     png=png_file.read_bytes()
     assert png[:8]==b"\x89PNG\r\n\x1a\n"
     assert struct.unpack(">II",png[16:24])==(1200,1320)

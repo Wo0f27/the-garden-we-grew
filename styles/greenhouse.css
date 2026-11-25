@@ -40,3 +40,6 @@
 /* 8.15: paint completed SVG wrapping layers directly, with no compositor-dependent transforms. */
 #bouquetArt .wrap-back,#bouquetArt .wrap-left,#bouquetArt .wrap-right,#bouquetArt .wrap-tie{animation:none!important;opacity:1!important;transform:none!important}
 .workbench-status .paper-preview-status{flex-basis:100%;font-size:.72rem;color:var(--forest);font-weight:600}
+
+/* 8.20: real image element for native mobile long-press saving, direct link and file share. */
+.save-image-dialog{width:min(92vw,540px);max-height:90dvh;overflow:auto;overscroll-behavior:contain;padding:16px;border:1px solid var(--line);border-radius:15px;background:var(--paper);color:var(--ink);text-align:center}.save-image-dialog::backdrop{background:#334b3c99}.save-image-dialog h2{font-size:1.65rem;margin:0 0 8px}.save-image-dialog p{font-size:.82rem;line-height:1.45;margin:0 0 9px}.save-image-dialog #savedBouquetImage{display:block;width:100%;max-height:55dvh;height:auto;object-fit:contain;margin:0 auto 12px;border-radius:6px;-webkit-touch-callout:default;touch-action:auto;user-select:auto;-webkit-user-select:auto;pointer-events:auto}.save-image-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.save-image-actions>*{flex:1 1 140px}.save-image-dialog #saveImageStatus:empty{display:none}
