@@ -4,20 +4,20 @@
 "use strict";
 const M=window.GardenModel,L=window.GardenLandscape,el=id=>document.getElementById(id);
 const reduce=window.matchMedia("(prefers-reduced-motion: reduce)");
-let initialized=false, gateOpen=false, gateWalking=false, gateArriving=false, gateFrame=0, letterOpen=false, letterOpening=false, letterTimer=0, letterReady=false, gateTimer=0, lastSignature="", lastBloomCount=-1, copy;
+let initialized=false, gateOpen=false, gateWalking=false, gateArriving=false, gateFrame=0, letterOpen=false, letterOpening=false, letterExtracting=false, letterUnsealed=false, letterRead=false, letterTimer=0, letterReady=false, gateTimer=0, lastSignature="", lastBloomCount=-1, copy;
 const SCENES=["gardenPath","nursery","glassEntrance","greenhouse","finalGarden"];
 const NEIGHBORS={gardenPath:["nursery"],nursery:["gardenPath","glassEntrance"],glassEntrance:["nursery","greenhouse"],greenhouse:["glassEntrance","finalGarden"],finalGarden:["greenhouse","nursery"]};
 let activeScene="gardenPath",sceneTimer=0,pendingScene=null;
 function revealScene(id){
  clearTimeout(sceneTimer);sceneTimer=0;pendingScene=null;
  for(const key of SCENES){const scene=el(key);scene.classList.remove("scene-leaving","scene-entering");scene.hidden=key!==id;}
- el("gardenClosing").hidden=id!=="finalGarden";activeScene=id;
+ el("gardenClosing").hidden=id!=="finalGarden"||!letterRead;activeScene=id;
  const dest=el(id);if(!reduce.matches&&!document.hidden)dest.classList.add("scene-entering");
  dest.scrollTop=0;dest.focus({preventScroll:true});
 }
 function navigateScene(id){
  if(!gateOpen||gateWalking||pendingScene||!NEIGHBORS[activeScene]?.includes(id))return;
- if(activeScene==="finalGarden"&&letterOpening)revealLetter();
+ if(activeScene==="finalGarden"&&(letterOpening||letterExtracting||letterOpen||letterUnsealed))closeLetter();
  pendingScene=id;
  if(reduce.matches||document.hidden){revealScene(id);return;}
  el(activeScene).classList.remove("scene-entering");el(activeScene).classList.add("scene-leaving");
@@ -122,27 +122,32 @@ function openGate(){
  gateTimer=setTimeout(walkThrough,820);
 }
 function closeLetter(restoreFocus=false){
- clearTimeout(letterTimer);letterTimer=0;letterOpening=false;letterOpen=false;
- const station=el("letterStation"),button=el("openLetter");
- station.classList.remove("letter-opening","letter-open");
+ clearTimeout(letterTimer);letterTimer=0;letterOpening=false;letterExtracting=false;letterUnsealed=false;letterOpen=false;
+ const station=el("letterStation"),button=el("openLetter"),dialog=el("letterDialog");
+ station.classList.remove("letter-opening","letter-open","letter-unsealed","letter-extracting");
  button.setAttribute("aria-expanded","false");button.removeAttribute("aria-disabled");
- el("gardenLetter").hidden=true;el("envelopeLabel").textContent=letterReady?copy.openLetter:copy.letterLocked;
- if(restoreFocus&&letterReady)button.focus({preventScroll:true});
+ if(dialog.open)dialog.close();el("gardenLetter").hidden=true;
+ el("envelopeLabel").textContent=letterReady?(letterRead?copy.letterOpened:copy.openLetter):copy.letterLocked;
+ el("gardenClosing").hidden=!letterRead||activeScene!=="finalGarden";
+ if(restoreFocus&&letterReady){button.focus({preventScroll:true});button.scrollIntoView({block:"nearest",behavior:"instant"});}
+}
+function finishUnseal(){
+ if(!letterReady||!letterOpening)return;clearTimeout(letterTimer);letterTimer=0;letterOpening=false;letterUnsealed=true;
+ const station=el("letterStation"),button=el("openLetter");
+ station.classList.remove("letter-opening");station.classList.add("letter-unsealed");button.removeAttribute("aria-disabled");el("envelopeLabel").textContent=copy.letterPull;
 }
 function revealLetter(){
- if(!letterReady||!letterOpening)return;
- clearTimeout(letterTimer);letterTimer=0;letterOpening=false;letterOpen=true;
- el("letterStation").classList.remove("letter-opening");el("letterStation").classList.add("letter-open");
- const button=el("openLetter");button.removeAttribute("aria-disabled");button.setAttribute("aria-expanded","true");
- el("envelopeLabel").textContent=copy.letterOpened;
- const paper=el("gardenLetter");paper.hidden=false;paper.focus({preventScroll:true});paper.scrollIntoView({block:"nearest",behavior:reduce.matches?"instant":"smooth"});
+ if(!letterReady||!letterExtracting)return;clearTimeout(letterTimer);letterTimer=0;letterExtracting=false;letterOpen=true;letterRead=true;
+ const station=el("letterStation"),button=el("openLetter");station.classList.remove("letter-extracting","letter-unsealed");station.classList.add("letter-open");
+ button.removeAttribute("aria-disabled");button.setAttribute("aria-expanded","true");el("envelopeLabel").textContent=copy.letterOpened;
+ const paper=el("gardenLetter"),dialog=el("letterDialog");paper.hidden=false;if(!dialog.open)dialog.showModal();dialog.scrollTop=0;paper.focus({preventScroll:true});
 }
 function openLetter(){
- if(!letterReady||letterOpening)return;
- if(letterOpen){el("gardenLetter").focus({preventScroll:true});el("gardenLetter").scrollIntoView({block:"nearest",behavior:reduce.matches?"instant":"smooth"});return;}
- letterOpening=true;el("openLetter").setAttribute("aria-disabled","true");el("envelopeLabel").textContent=copy.letterOpening;
- el("letterStation").classList.add("letter-opening");
- if(reduce.matches||document.hidden)revealLetter();else letterTimer=setTimeout(revealLetter,900);
+ if(!letterReady||letterOpening||letterExtracting||letterOpen)return;
+ const station=el("letterStation"),button=el("openLetter");button.setAttribute("aria-disabled","true");
+ if(letterUnsealed){letterExtracting=true;station.classList.add("letter-extracting");el("envelopeLabel").textContent=copy.letterExtracting;if(reduce.matches||document.hidden)revealLetter();else letterTimer=setTimeout(revealLetter,480);return;}
+ letterOpening=true;el("envelopeLabel").textContent=copy.letterOpening;station.classList.add("letter-opening");
+ if(reduce.matches||document.hidden)finishUnseal();else letterTimer=setTimeout(finishUnseal,900);
 }
 function init(config){
  if(initialized)return;initialized=true;copy=config;
@@ -150,11 +155,13 @@ function init(config){
  el("gardenJourney").addEventListener("click",event=>{const link=event.target.closest("[data-scene-go]");if(!link)return;event.preventDefault();if(link.closest("section")?.id!==activeScene)return;navigateScene(link.dataset.sceneGo);});
  el("openLetter").addEventListener("click",openLetter);
  el("closeLetter").addEventListener("click",()=>closeLetter(true));
+ el("letterDialog").addEventListener("cancel",event=>{event.preventDefault();closeLetter(true);});
+ el("letterDialog").addEventListener("click",event=>{if(event.target===el("letterDialog"))closeLetter(true);});
  el("letterBotanical").innerHTML='<svg viewBox="0 0 180 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+group(90,113,.60,M.flowerMarkup(base("rose",4)))+group(57,111,.39,M.flowerMarkup(base("gypsophila",4)))+group(122,112,.43,M.flowerMarkup(base("peony",4)))+'</svg>';
- if(reduce.addEventListener)reduce.addEventListener("change",()=>{motion();if(reduce.matches&&gateWalking)finishGate();if(reduce.matches&&letterOpening)revealLetter();if(reduce.matches&&pendingScene)revealScene(pendingScene);});
+ if(reduce.addEventListener)reduce.addEventListener("change",()=>{motion();if(reduce.matches&&gateWalking)finishGate();if(reduce.matches&&letterOpening)finishUnseal();if(reduce.matches&&letterExtracting)revealLetter();if(reduce.matches&&pendingScene)revealScene(pendingScene);});
  if("IntersectionObserver" in window){const io=new IntersectionObserver(entries=>entries.forEach(e=>e.target.classList.toggle("scene-visible",e.isIntersecting)),{threshold:.04});for(const scene of document.querySelectorAll(".scene-picture"))io.observe(scene);}
  else for(const scene of document.querySelectorAll(".scene-picture"))scene.classList.add("scene-visible");
- document.addEventListener("visibilitychange",()=>{document.body.classList.toggle("motion-paused",document.hidden);if(document.hidden&&gateWalking)finishGate();if(document.hidden&&letterOpening)revealLetter();if(document.hidden&&pendingScene)revealScene(pendingScene);});
+ document.addEventListener("visibilitychange",()=>{document.body.classList.toggle("motion-paused",document.hidden);if(document.hidden&&gateWalking)finishGate();if(document.hidden&&letterOpening)finishUnseal();if(document.hidden&&letterExtracting)revealLetter();if(document.hidden&&pendingScene)revealScene(pendingScene);});
  el("heroFoliage").innerHTML=L.bush(55,289,22,82)+L.bush(306,290,23,223)+L.fern(48,295,43,317)+L.fern(312,296,46,812);
  el("heroVines").innerHTML=L.vine(66,181,35,119,1,23)+L.vine(294,184,35,121,-1,41);
  el("glassFoliage").innerHTML=L.bush(60,264,28,13)+L.bush(540,264,28,53)+L.fern(95,276,35,79)+L.fern(507,276,35,107);
@@ -178,7 +185,7 @@ function update(state,config,grown){
  el("letterStatus").textContent=ready?config.letterReady:config.letterWaiting;
  el("letterProgress").textContent=config.letterProgress.replace("{count}",grown).replace("{total}",M.species.length);
  el("finalBloomMeter").innerHTML=M.species.map((id,i)=>'<span class="final-bloom'+(state.plants[id]?.stage===4?' bloomed':'')+'"><svg viewBox="0 0 24 24"><path d="M12 9C3 2 1 13 8 13C1 20 12 24 12 16C19 24 26 14 16 13C23 4 12 2 12 9Z" fill="currentColor"/><circle cx="12" cy="13" r="2.3" fill="#d2ad72"/></svg></span>').join("");
- if(!ready)closeLetter();else if(!letterOpen&&!letterOpening)el("envelopeLabel").textContent=config.openLetter;
+ if(!ready){letterRead=false;closeLetter();}else if(!letterOpen&&!letterOpening&&!letterUnsealed&&!letterExtracting)el("envelopeLabel").textContent=letterRead?config.letterOpened:config.openLetter;
 }
 window.GardenScenes={init,update};
 })();

@@ -1,7 +1,11 @@
 /* Dependency-free garden model; botanical outlines adapted from BLOOM° (MIT). */
 (function(root){
 "use strict";
-const species=["rose","peony","tulip","daisy","sunflower","gypsophila"];
+const species=["rose","peony","tulip","daisy","sunflower","gypsophila"],MAX_STEMS=12;
+function stemSpecies(id){if(typeof id!=="string")return null;const match=/^(rose|peony|tulip|daisy|sunflower|gypsophila)(?:~([2-9]|1[0-2]))?$/.exec(id);return match?match[1]:null;}
+function stemPlant(s,id){const kind=stemSpecies(id),plant=s.plants[kind];return plant?{...plant,seed:id===kind?plant.seed:seedFor(id)}:null;}
+function stemCount(s,kind){return s.bouquet.filter(id=>stemSpecies(id)===kind).length;}
+function nextStem(s,kind){if(s.bouquet.length>=MAX_STEMS||s.plants[kind]?.stage!==4)return null;for(let n=1;n<=MAX_STEMS;n++){const id=n===1?kind:kind+"~"+n;if(!s.bouquet.includes(id))return id;}return null;}
 const colors={rose:["#d998a5","#b7657b","#f0bdc4"],peony:["#e4aeb9","#c48198","#f7d0d7"],tulip:["#d88c9c","#a95876","#f3b5bc"],daisy:["#fffdf1","#d8d6bc","#fffef7"],sunflower:["#e5bd50","#c98e32","#f6d780"],gypsophila:["#fff9e9","#ddcfbc","#ffffff"]};
 const wraps={ivory:"#e9d8bc",blush:"#e3b6bd",sage:"#aebda4"},ribbons={rose:"#b16c83",gold:"#c2a168",forest:"#55775c"};
 const paperStyles=["plain","botanical","stripe"],ribbonStyles=["bow","long","knot"];
@@ -14,12 +18,12 @@ function fresh(){return {version:1,plants:{},bouquet:[],wrap:"ivory",ribbon:"ros
 function normalize(input){
  const s=fresh();if(!input||typeof input!=="object"||input.version!==1)return s;
  for(const id of species){const p=input.plants&&input.plants[id];if(p&&Number.isInteger(p.stage)&&p.stage>=0&&p.stage<=4)s.plants[id]={id,stage:p.stage,seed:seedFor(id)};}
- if(Array.isArray(input.bouquet))s.bouquet=[...new Set(input.bouquet.filter(id=>species.includes(id)&&s.plants[id]?.stage===4))];
+ if(Array.isArray(input.bouquet))s.bouquet=[...new Set(input.bouquet.filter(id=>stemSpecies(id)&&s.plants[stemSpecies(id)]?.stage===4))].slice(0,MAX_STEMS);
  if(own(wraps,input.wrap))s.wrap=input.wrap;if(own(ribbons,input.ribbon))s.ribbon=input.ribbon;s.greenery=input.greenery!==false;if(paperStyles.includes(input.paperStyle))s.paperStyle=input.paperStyle;if(ribbonStyles.includes(input.ribbonStyle))s.ribbonStyle=input.ribbonStyle;s.wrapped=s.bouquet.length>0&&(typeof input.wrapped==="boolean"?input.wrapped:true);for(const id of s.bouquet){const p=validPlacement(input.placements?.[id]);if(p)s.placements[id]=p;}return s;
 }
 function plant(s,id){if(!species.includes(id)||s.plants[id])return false;s.plants[id]={id,stage:0,seed:seedFor(id)};return true;}
 function water(s,id){const p=s.plants[id];if(!p||p.stage>=4)return false;p.stage++;return true;}
-function add(s,id){if(s.plants[id]?.stage!==4||s.bouquet.includes(id))return false;s.bouquet.push(id);s.wrapped=false;return true;}
+function add(s,kind){const id=nextStem(s,kind);if(!id)return false;s.bouquet.push(id);s.wrapped=false;return true;}
 function remove(s,id){const i=s.bouquet.indexOf(id);if(i<0)return false;s.bouquet.splice(i,1);delete s.placements[id];s.wrapped=false;return true;}
 function move(s,id,delta){if(delta!==1&&delta!==-1)return false;const i=s.bouquet.indexOf(id),j=i+delta;if(i<0||j<0||j>=s.bouquet.length)return false;[s.bouquet[i],s.bouquet[j]]=[s.bouquet[j],s.bouquet[i]];s.wrapped=false;return true;}
 function escape(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&apos;"}[c]));}
@@ -207,7 +211,7 @@ function bouquetSvg(s,title,{workbench=false}={}){
  const leftD="M74 210Q133 229 202 299L183 388L151 355Z",rightD="M326 210Q267 229 198 299L217 388L249 355Z";
  const paperShape=(d,fill)=>'<path d="'+d+'" fill="'+fill+'" stroke="#ad9579" stroke-width="1.1" stroke-linejoin="round"/><path d="'+d+'" fill="url(#paperShade)"/>'+ (pattern?'<path d="'+d+'" fill="url(#paperPattern)"/>':"");
  if(s.greenery&&n){for(const a of [-49,-37,33,47])extra+='<g transform="translate(200 338) rotate('+a+') scale(1.37)"><path d="M0 0Q-3 -56 0 -115" fill="none" stroke="#6f8967" stroke-width="2"/>'+leaf(0,-40,-1,18)+leaf(0,-65,1,21)+leaf(0,-85,-1,15)+'</g>';}
- for(const item of bouquetLayout(s.bouquet,s.placements)){plants+='<g data-flower="'+item.id+'" transform="'+placementTransform(item)+'">'+flowerMarkup(s.plants[item.id])+'</g>';}
+ for(const item of bouquetLayout(s.bouquet,s.placements)){plants+='<g data-flower="'+item.id+'" transform="'+placementTransform(item)+'">'+flowerMarkup(stemPlant(s,item.id))+'</g>';}
  const back=wrapped?'<g class="wrap-back">'+paperShape(backD,paper)+'</g>':"";
  let front="";
  if(wrapped){
@@ -219,5 +223,5 @@ function bouquetSvg(s,title,{workbench=false}={}){
  if(workbench)return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 440" width="400" height="440" role="img" aria-label="'+escape(title)+'">'+defs+(n?back+extra+plants+front:"")+'</svg>';
  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 440" width="400" height="440" role="img" aria-label="'+escape(title)+'">'+defs+'<rect width="400" height="440" rx="12" fill="#fffaf0"/><path d="M24 406V137a176 112 0 0 1 352 0v269Z" fill="none" stroke="#c5a371" stroke-width="1.2"/><path d="M32 398V137a168 104 0 0 1 336 0v261Z" fill="none" stroke="#e2d3b6" stroke-width=".75"/>'+back+extra+plants+front+'<text x="200" y="420" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#54705a">'+escape(title)+'</text></svg>';
 }
-root.GardenModel={species,wraps,ribbons,fresh,normalize,plant,water,add,remove,move,seedFor,flowerMarkup,potSvg,bouquetSvg,paperStyles,ribbonStyles,setWrapped,bouquetLayout,setPlacement,clearPlacement,autoArrange,bouquetSnapshot,restoreBouquet,placementTransform,flowerHead,placementFromHead};
+root.GardenModel={species,MAX_STEMS,stemSpecies,stemPlant,stemCount,nextStem,wraps,ribbons,fresh,normalize,plant,water,add,remove,move,seedFor,flowerMarkup,potSvg,bouquetSvg,paperStyles,ribbonStyles,setWrapped,bouquetLayout,setPlacement,clearPlacement,autoArrange,bouquetSnapshot,restoreBouquet,placementTransform,flowerHead,placementFromHead};
 })(typeof window!=="undefined"?window:globalThis);

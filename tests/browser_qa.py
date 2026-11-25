@@ -36,8 +36,7 @@ def only_scene(page,id):
     if id in ("gardenPath","glassEntrance"):
         assert page.locator("#"+id).evaluate("el=>el.scrollHeight<=el.clientHeight+1"), "scenic chapter has overflow"
         expect(page.locator("#"+id+" .scene-caption")).to_be_in_viewport()
-    if id=="finalGarden": expect(page.locator("#gardenClosing")).to_be_visible()
-    else: expect(page.locator("#gardenClosing")).to_be_hidden()
+    if id!="finalGarden": expect(page.locator("#gardenClosing")).to_be_hidden()
 def go(page,source,destination):
     click(page, f'#{source} [data-scene-go="{destination}"]')
     only_scene(page,destination)
@@ -122,6 +121,15 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     for id in SPECIES: click(page,f'#flowerTray button[data-id="{id}"][data-action="add"]')
     assert len(saved(page)["bouquet"])==6
     original_order=saved(page)["bouquet"]
+    click(page,"#bouquetHelp")
+    expect(page.locator("#helpDialog")).to_be_visible()
+    click(page,"#closeHelp")
+    expect(page.locator("#helpDialog")).to_be_hidden()
+    click(page,'#flowerTray button[data-id="rose"][data-action="add"]')
+    assert saved(page)["bouquet"][-1]=="rose~2"
+    expect(page.locator('#bouquetArt [data-flower="rose~2"]')).to_have_count(1)
+    click(page,'#flowerTray button[data-id="rose~2"][data-action="remove"]')
+    assert saved(page)["bouquet"]==original_order
     click(page,'#flowerTray button[data-id="rose"][data-action="down"]')
     assert saved(page)["bouquet"][:2]==[original_order[1],"rose"]
     assert page.locator("#flowerTray .tray-selected").evaluate_all("els=>els.map(e=>e.dataset.flower)")==saved(page)["bouquet"]
@@ -182,12 +190,18 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     assert struct.unpack(">II",png[16:24])==(1200,1320)
     snapshot=saved(page)
     go(page,"greenhouse","finalGarden")
+    expect(page.locator("#gardenClosing")).to_be_hidden()
     click(page,"#openLetter")
+    expect(page.locator("#envelopeLabel")).to_have_text("Pull out the letter")
+    expect(page.locator("#gardenLetter")).to_be_hidden()
+    click(page,"#openLetter")
+    expect(page.locator("#letterDialog")).to_be_visible()
     expect(page.locator("#gardenLetter")).to_be_visible()
     expect(page.locator("#notice")).to_be_empty()
     page.locator("#gardenLetter").screenshot(path=str(OUT/(name+"-letter.png")),animations="disabled")
     click(page,"#closeLetter")
     expect(page.locator("#gardenLetter")).to_be_hidden()
+    expect(page.locator("#gardenClosing")).to_be_visible()
     page.reload(wait_until="networkidle");click(page,"#openGate")
     expect(page.locator("#gardenJourney")).to_be_visible()
     expect(page.locator("#openGate")).not_to_have_attribute("aria-disabled","true")

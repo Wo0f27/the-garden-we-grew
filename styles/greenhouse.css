@@ -33,3 +33,6 @@
    No pointer events: positioning handles and preview controls stay interactive. */
 #greenhouse>.live-workbench::before{content:"";position:absolute;inset:-2px 0 0;background:var(--ivory);z-index:-1;pointer-events:none}
 @media(max-height:520px){#greenhouse>.live-workbench{top:auto}#greenhouse>.live-workbench::before{inset:0}}
+
+/* 8.14: optional Peach tutorial; native dialog keeps focus and scrolling local. */
+.help-button{font-size:.73rem;min-height:44px;padding:6px 9px}.help-dialog{width:min(92vw,520px);max-height:85dvh;overflow:auto;overscroll-behavior:contain;border:1px solid var(--line);border-radius:18px;padding:20px;color:var(--ink);background:var(--paper);box-shadow:0 20px 70px #3b4d4050}.help-dialog::backdrop{background:#334b3c88}.help-heading{display:flex;gap:14px;align-items:center;margin-bottom:12px}.help-heading h2{font-size:1.5rem;margin:0}.help-heading .kicker{margin:0 0 5px}.help-peach{flex:none;width:85px}.help-peach img{width:100%;height:auto;display:block}.help-steps{padding-left:22px;margin:12px 0 18px}.help-steps li{margin:0 0 11px;font-size:.87rem}.help-dialog #closeHelp{width:100%}.tray-selected .tray-add{margin-top:2px}@media(prefers-reduced-motion:reduce){.help-peach{display:none}}

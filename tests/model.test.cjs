@@ -6,7 +6,7 @@ for(const id of M.species){
  for(let i=0;i<4;i++)assert.equal(M.water(s,id),true);
  assert.equal(M.water(s,id),false);
  const mark=M.flowerMarkup(s.plants[id]);assert.equal(mark,M.flowerMarkup(s.plants[id]));
- assert.ok(M.potSvg(s.plants[id]).includes(mark));assert.equal(M.add(s,id),true);assert.equal(M.add(s,id),false);
+ assert.ok(M.potSvg(s.plants[id]).includes(mark));assert.equal(M.add(s,id),true);
  assert.ok(M.bouquetSvg(s,"Garden").includes(mark));
 }
 assert.equal(s.bouquet.length,6);assert.equal(M.move(s,"rose",1),true);assert.equal(M.remove(s,"rose"),true);assert.equal(M.add(s,"rose"),true);
@@ -39,4 +39,14 @@ console.log("Prototype 07 position bounds, exact head inverse, migration, export
  const s=M.fresh();M.plant(s,"rose");for(let i=0;i<4;i++)M.water(s,"rose");M.add(s,"rose");
  const live=M.bouquetSvg(s,"QA",{workbench:true}), exported=M.bouquetSvg(s,"QA");
  if(!live.includes('data-flower="rose"')||live.includes('<text x="200" y="420"')||!exported.includes('<text x="200" y="420"'))throw Error("Workbench/keepsake rendering separation failed");
+}
+
+// Repeat stems, independent instance placements, persistence and bounded quantity.
+{
+ const s=M.fresh();M.plant(s,"rose");for(let i=0;i<4;i++)M.water(s,"rose");
+ for(let i=0;i<12;i++)assert.equal(M.add(s,"rose"),true);assert.equal(M.add(s,"rose"),false);assert.equal(M.add(s,"daisy"),false);
+ assert.equal(new Set(s.bouquet).size,12);assert.equal(M.stemCount(s,"rose"),12);assert.equal(M.stemSpecies("rose~12"),"rose");assert.equal(M.stemSpecies("rose~13"),null);
+ assert.equal(M.setPlacement(s,"rose~2",{angle:11,scale:1.2}),true);assert.equal(s.placements.rose,undefined);assert.deepEqual(M.normalize(JSON.parse(JSON.stringify(s))),s);
+ const svg=M.bouquetSvg(s,"QA");assert.equal((svg.match(/data-flower=/g)||[]).length,12);assert.ok(svg.includes('data-flower="rose~2"'));assert.ok(!/NaN|Infinity|undefined/.test(svg));
+ const before=M.bouquetSnapshot(s);assert.equal(M.remove(s,"rose~2"),true);assert.equal(s.placements["rose~2"],undefined);M.restoreBouquet(s,before);assert.deepEqual(M.bouquetSnapshot(s),before);
 }
