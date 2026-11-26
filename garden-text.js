@@ -53,7 +53,11 @@ window.GARDEN_TEXT = {
     tulip: {name:"Tulip", meaning:"Affection", message:"Apparently, tulips mean affection. Reminds me of how affectionate you are to me, my lovely cutie baby. I miss you."},
     daisy: {name:"Daisy", meaning:"New beginnings", message:"As we open new chapters of our lives together, there is always something new to find and experience especially for us. Let's discover them together and may we create more fun memories with them. I look forward to our future together. Know that I'll always be on your side, okay?"},
     sunflower: {name:"Sunflower", meaning:"Adoration", message:"Sunflower surprised me cause some say they mean adoration. Like how much I adore my lovely, cutie, sexy, beautiful, the prettiest and most gorgeous baby lovelove in the wide universe, My cutie baby Ck."},
-    gypsophila: {name:"Baby's breath", meaning:"Lasting love", message:"The very first flower you told me you love when we first met. I handcrafted some to give to you, do you still have them? I miss making them for you, I definitely should start again. They say they mean lasting love, just like my love for you that's everlasting. A love that will never change. I'll always be yours, I love you."}
+    gypsophila: {name:"Baby's breath", meaning:"Lasting love", message:"The very first flower you told me you love when we first met. I handcrafted some to give to you, do you still have them? I miss making them for you, I definitely should start again. They say they mean lasting love, just like my love for you that's everlasting. A love that will never change. I'll always be yours, I love you."},
+    lily: {name:"Lily", meaning:"Grace", message:"A graceful bloom with six spreading tepals."},
+    carnation: {name:"Carnation", meaning:"Admiration", message:"Layers of gently frilled petals."},
+    lavender: {name:"Lavender", meaning:"Calm", message:"Tiny flowers gathered along a fragrant-looking spike."},
+    orchid: {name:"Orchid", meaning:"Beauty", message:"A distinctive bloom with a delicate central lip."}
   },
 
   // =====================================================================
@@ -195,6 +199,15 @@ window.GARDEN_TEXT = {
   resetDone: "A new garden is ready.",
   saveFailed: "This browser could not save the garden. Keep this tab open.",
   storageUnavailable: "Local storage is unavailable or could not be read.",
+
+  // =====================================================================
+  // V9 · EXPANSION CONTROLS (preview only)
+  // =====================================================================
+  extendedTitle: "The extended nursery",
+  extendedIntro: "Grow these optional flowers for your bouquets. Your original six blooms still unlock the letter.",
+  extendedProgress: "Extended nursery: {count} of {total} flowers in bloom",
+  colorLabel: "Flower color",
+  colorNames: {default:"Original",red:"Red",ivory:"Ivory",yellow:"Yellow",white:"White",coral:"Coral",purple:"Purple",pink:"Pink",lavender:"Lavender",rust:"Rust",lemon:"Lemon",lilac:"Lilac (dyed)",orange:"Orange",blue:"Blue-violet"},
 
   // =====================================================================
   // 12 · ACCESSIBILITY DESCRIPTIONS (normally leave these alone)

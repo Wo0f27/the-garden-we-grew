@@ -8,7 +8,8 @@ from playwright.sync_api import sync_playwright, expect
 ROOT = Path(__file__).resolve().parents[1]
 OUT = Path(os.environ.get("GARDEN_QA_OUTPUT", tempfile.mkdtemp(prefix="garden-qa-")))
 OUT.mkdir(parents=True, exist_ok=True)
-KEY = "the-garden-we-grew-prototype-v1"
+KEY = "the-garden-we-grew-v9-preview"
+LEGACY_KEY = "the-garden-we-grew-prototype-v1"
 PEACH_GIF = "https://media.tenor.com/ZQ7fGn4s3YwAAAAj/peach-goma-paw-paw.gif"
 PEACH_FIXTURE = base64.b64decode("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
 SPECIES = ["rose","peony","tulip","daisy","sunflower","gypsophila"]
@@ -141,6 +142,8 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
         page.wait_for_timeout(750)
     expect(page.locator("#openLetter")).to_be_disabled()
     for id in SPECIES: plant(page,id)
+    expect(page.locator("#plants .plant-card")).to_have_count(10)
+    expect(page.locator("#extraProgress")).to_have_text("Extended nursery: 0 of 4 flowers in bloom")
     if reduce=="no-preference": page.wait_for_timeout(1000)
     expect(page.locator("#notice")).to_be_empty(timeout=6000)
     assert page.locator("#plants .plant-card").evaluate_all("""cards=>cards.every(card=>{const art=card.querySelector(".plant-art").getBoundingClientRect(),svg=card.querySelector(".plant-art svg").getBoundingClientRect(),name=card.querySelector("h3").getBoundingClientRect();return svg.bottom<=art.bottom+1&&svg.top>=art.top-1&&art.bottom<=name.top+1})"""), "nursery illustration overlaps heading"
@@ -328,6 +331,45 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
     if reduce=="reduce": assert PEACH_GIF not in requests,requests
     print(json.dumps({"profile":name,"viewport":[width,height],"journey":"PASS","png_bytes":len(png),"svg_bytes":len(svg.encode()),"page_errors":len(errors),"external_requests":sum(u==PEACH_GIF for u in requests),"sticker_request_mocked":True}),flush=True)
     context.close()
+def expansion_pilot(browser):
+    context=browser.new_context(viewport={"width":390,"height":844},is_mobile=True,has_touch=True,reduced_motion="reduce",accept_downloads=True)
+    page=context.new_page()
+    errors=[]
+    page.on("pageerror",lambda e:errors.append(str(e)))
+    legacy={"version":1,"plants":{id:{"id":id,"stage":4} for id in SPECIES},"bouquet":["rose","rose~2"],"wrap":"blush","placements":{"rose":{"angle":10,"scale":1.3}},"wrapped":True}
+    page.add_init_script("""(()=>{const k=%s;if(localStorage.getItem(k)===null)localStorage.setItem(k,%s)})()"""%(json.dumps(LEGACY_KEY),json.dumps(json.dumps(legacy))))
+    page.goto(url,wait_until="networkidle")
+    expect(page.locator("#app")).to_be_visible()
+    assert saved(page)["version"]==2 and saved(page)["bouquet"]==legacy["bouquet"] and saved(page)["placements"]==legacy["placements"]
+    assert saved(page)["stemColors"]=={"rose":"default","rose~2":"default"}
+    expect(page.locator("#openLetter")).to_be_enabled()
+    click(page,"#openGate");go(page,"gardenPath","nursery")
+    for id in ["lily","carnation","lavender","orchid"]: plant(page,id)
+    expect(page.locator("#extraProgress")).to_have_text("Extended nursery: 4 of 4 flowers in bloom")
+    page.locator('#plants select[data-color-id="rose"]').select_option("red")
+    assert saved(page)["stemColors"]=={"rose":"default","rose~2":"default"}
+    go(page,"nursery","glassEntrance");click(page,"#glassDoor")
+    for id in ["lily","carnation","lavender","orchid"]: click(page,f'#flowerTray button[data-id="{id}"][data-action="add"]')
+    page.locator('#flowerTray select[data-color-id="rose~2"]').select_option("ivory")
+    assert saved(page)["stemColors"]["rose~2"]=="ivory" and saved(page)["stemColors"]["rose"]=="default"
+    click(page,"#undoBouquet");assert saved(page)["stemColors"]["rose~2"]=="default"
+    click(page,"#redoBouquet");assert saved(page)["stemColors"]["rose~2"]=="ivory"
+    expect(page.locator('#bouquetArt [data-flower="rose~2"] [fill="#fff4db"]').first).to_be_visible()
+    for _ in range(6): click(page,'#flowerTray button[data-id="rose"][data-action="add"]')
+    assert len(saved(page)["bouquet"])==12
+    click(page,"#wrapBouquet")
+    stats=page.evaluate("""()=>{const svg=document.querySelector('#bouquetArt svg'),start=performance.now();for(let i=0;i<20;i++)GardenModel.bouquetSvg(JSON.parse(localStorage.getItem('the-garden-we-grew-v9-preview')),'QA');return {bytes:new TextEncoder().encode(svg.outerHTML).length,paths:svg.querySelectorAll('path').length,avgRenderMs:(performance.now()-start)/20}}""")
+    click(page,"#png");expect(page.locator("#savedBouquetImage")).to_be_visible();page.wait_for_function("()=>document.querySelector('#savedBouquetImage').naturalWidth===1200")
+    click(page,"#closeImageDialog");snapshot=saved(page)
+    page.reload(wait_until="networkidle");expect(page.locator("#app")).to_be_visible();assert saved(page)==snapshot
+    assert page.evaluate("(key)=>JSON.parse(localStorage.getItem(key))",LEGACY_KEY)==legacy
+    page.once("dialog",lambda d:d.accept());click(page,"#reset")
+    page.reload(wait_until="networkidle");expect(page.locator("#app")).to_be_visible();assert saved(page)["plants"]=={}
+    assert page.evaluate("(key)=>JSON.parse(localStorage.getItem(key))",LEGACY_KEY)==legacy
+    assert not errors,errors
+    print(json.dumps({"expansion_pilot":"PASS","metrics":stats,"legacy_storage_unchanged":True}),flush=True)
+    context.close()
+
 try:
     with sync_playwright() as p:
         chrome=os.environ.get("GARDEN_QA_CHROME")
@@ -336,6 +378,7 @@ try:
             journey(browser,name,w,h,mobile)
         journey(browser,"normal-motion",390,844,True,"no-preference")
         journey(browser,"desktop-normal-motion",1280,900,False,"no-preference")
+        expansion_pilot(browser)
         browser.close()
     print("Browser QA PASS; screenshots and exports:",OUT,flush=True)
 finally:

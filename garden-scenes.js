@@ -70,7 +70,7 @@ function navigateScene(id){
 const base=(id,stage)=>({id,seed:M.seedFor(id),stage});
 function group(x,y,scale,markup){return '<g transform="translate('+x+' '+y+') scale('+scale+')">'+markup+'</g>';}
 function gardenFlowers(target,state,locations){
- target.innerHTML=M.species.map((id,i)=>{const p=state.plants[id];const [x,y,s]=locations[i];return group(x,y,s,M.flowerMarkup(p||base(id,0)));}).join("");
+ target.innerHTML=M.originalSpecies.map((id,i)=>{const p=state.plants[id];const [x,y,s]=locations[i];return group(x,y,s,M.flowerMarkup(p||base(id,0)));}).join("");
 }
 function decor(target,locations){target.innerHTML=locations.map(([x,y,s,id])=>group(x,y,s,M.flowerMarkup(base(id,4)))).join("");}
 function drawTree(grown){el("treeBlooms").innerHTML=L.treeCanopy(grown);}
@@ -264,18 +264,18 @@ function init(config){
 }
 function update(state,config,grown){
  if(!initialized)return;
- const sig=M.species.map(id=>state.plants[id]?.stage??-1).join(",");
+ const sig=M.originalSpecies.map(id=>(state.plants[id]?.stage??-1)+":"+(state.plants[id]?.color||"default")).join(",");
  if(sig!==lastSignature){lastSignature=sig;
  gardenFlowers(el("pathPlants"),state,[[72,296,.63],[153,287,.48],[218,246,.31],[386,241,.31],[466,288,.55],[548,299,.65]]);
  gardenFlowers(el("finalPlants"),state,[[38,314,.40],[100,316,.31],[223,315,.29],[416,315,.29],[490,314,.40],[560,315,.48]]);
  }
  if(grown!==lastBloomCount){lastBloomCount=grown;drawTree(grown);updateLandscape(grown);}
- el("pathProgress").textContent=grown?config.pathGrown.replace("{count}",grown).replace("{total}",M.species.length):config.pathReady;
- const ready=grown===M.species.length;letterReady=ready;el("openLetter").disabled=!ready;
+ el("pathProgress").textContent=grown?config.pathGrown.replace("{count}",grown).replace("{total}",M.originalSpecies.length):config.pathReady;
+ const ready=grown===M.originalSpecies.length;letterReady=ready;el("openLetter").disabled=!ready;
  el("letterStation").classList.toggle("letter-ready",ready);el("benchEnvelope").setAttribute("visibility",ready?"visible":"hidden");
  el("letterStatus").textContent=ready?config.letterReady:config.letterWaiting;
- el("letterProgress").textContent=config.letterProgress.replace("{count}",grown).replace("{total}",M.species.length);
- el("finalBloomMeter").innerHTML=M.species.map((id,i)=>'<span class="final-bloom'+(state.plants[id]?.stage===4?' bloomed':'')+'"><svg viewBox="0 0 24 24"><path d="M12 9C3 2 1 13 8 13C1 20 12 24 12 16C19 24 26 14 16 13C23 4 12 2 12 9Z" fill="currentColor"/><circle cx="12" cy="13" r="2.3" fill="#d2ad72"/></svg></span>').join("");
+ el("letterProgress").textContent=config.letterProgress.replace("{count}",grown).replace("{total}",M.originalSpecies.length);
+ el("finalBloomMeter").innerHTML=M.originalSpecies.map((id,i)=>'<span class="final-bloom'+(state.plants[id]?.stage===4?' bloomed':'')+'"><svg viewBox="0 0 24 24"><path d="M12 9C3 2 1 13 8 13C1 20 12 24 12 16C19 24 26 14 16 13C23 4 12 2 12 9Z" fill="currentColor"/><circle cx="12" cy="13" r="2.3" fill="#d2ad72"/></svg></span>').join("");
  if(!ready){letterRead=false;closeLetter();}else if(!letterOpen&&!letterOpening&&!letterUnsealed&&!letterExtracting&&!letterUnfolding&&!letterFolding)el("envelopeLabel").textContent=letterRead?config.letterOpened:config.openLetter;
 }
 window.GardenScenes={init,update};

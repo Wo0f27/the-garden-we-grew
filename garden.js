@@ -1,7 +1,7 @@
 /* UI controller; no third-party requests, analytics or personal data upload. */
 (function(){
 "use strict";
-const M=window.GardenModel, el=id=>document.getElementById(id), KEY="the-garden-we-grew-prototype-v1";
+const M=window.GardenModel, el=id=>document.getElementById(id), LEGACY_KEY="the-garden-we-grew-prototype-v1",KEY="the-garden-we-grew-v9-preview";
 let copy,state=M.fresh(),noticeTimer,storageOK=true;
 let paperPreview=false,editMode=false,selectedFlower=null,drag=null,undoStack=[],redoStack=[], nurserySignature="",traySignature="",pngBusy=false;
 function clearNotice(){clearTimeout(noticeTimer);el("notice").textContent="";}
@@ -112,29 +112,31 @@ function nudge(angle,scale){
 }
 function render(focus){
  cancelDrag();
- const root=el("plants");const signature=M.species.map(id=>(state.plants[id]?.stage??-1)+":"+M.stemCount(state,id)).join(",");
- const grown=M.species.filter(id=>state.plants[id]?.stage===4).length;
+ const root=el("plants");const signature=M.species.map(id=>(state.plants[id]?.stage??-1)+":"+M.stemCount(state,id)+":"+(state.plants[id]?.color||"default")).join(",");
+ const grown=M.originalSpecies.filter(id=>state.plants[id]?.stage===4).length,extraGrown=M.extendedSpecies.filter(id=>state.plants[id]?.stage===4).length;
  if(nurserySignature!==signature){nurserySignature=signature;root.replaceChildren();
  for(const id of M.species){
+  if(id===M.extendedSpecies[0]){const head=node("div","extended-heading");head.append(node("h3","",copy.extendedTitle),node("p","",copy.extendedIntro));root.append(head);}
   const p=state.plants[id], c=copy.flowers[id], stage=p?.stage??-1;
   const card=node("article","plant-card");const art=node("div","plant-art");art.innerHTML=M.potSvg(p);if(focus?.id===id&&focus.action==="plant")art.classList.add("growth-reveal");card.append(art,node("h3","",c.name),node("div","species-meaning",c.meaning),node("div","stage",stage<0?copy.readyToPlant:copy.stages[stage]));
   const meter=node("div","stage-meter");meter.setAttribute("aria-hidden","true");for(let i=0;i<5;i++)meter.append(node("i",i<=stage?"filled":""));card.append(meter);
   if(stage===4)card.append(node("p","plant-message",c.message));
+  if(p)card.append(colorControl(id,false,p.color));
   const action=stage<0?"plant":stage<4?"water":"add", added=M.stemCount(state,id)>0;
   const b=button(action==="plant"?copy.plant:action==="water"?copy.water:added?copy.added:copy.add,action,id,"action");
   b.setAttribute("aria-label",b.textContent+" — "+c.name);b.disabled=action==="add"&&(added||state.bouquet.length>=M.MAX_STEMS);card.append(b);root.append(card);if(focus?.id===id&&focus.action==="water"&&p)growPot(art,p);
  }}
  if(window.GardenScenes)window.GardenScenes.update(state,copy,grown);
- el("progressText").textContent=format(copy.nurseryProgress,{count:grown,total:M.species.length});el("progress").max=M.species.length;el("progress").value=grown;
+ el("progressText").textContent=format(copy.nurseryProgress,{count:grown,total:M.originalSpecies.length});el("progress").max=M.originalSpecies.length;el("progress").value=grown;el("extraProgress").textContent=format(copy.extendedProgress,{count:extraGrown,total:M.extendedSpecies.length});
  const bouquetArt=el("bouquetArt");updatePreview();
  // Render final paper immediately; avoid SVG group transform animations on mobile.
- const tray=el("flowerTray"),trayKey=signature+"|"+state.bouquet.join(",");if(traySignature!==trayKey){traySignature=trayKey;tray.replaceChildren();
+ const tray=el("flowerTray"),trayKey=signature+"|"+state.bouquet.map(id=>id+":"+state.stemColors[id]).join(",");if(traySignature!==trayKey){traySignature=trayKey;tray.replaceChildren();
  const ids=[...state.bouquet,...M.species.filter(kind=>!M.stemCount(state,kind))];
  for(const id of ids){const kind=M.stemSpecies(id),p=state.plants[kind],i=state.bouquet.indexOf(id),selected=i>=0,ready=p?.stage===4,name=selected?stemName(id):copy.flowers[kind].name;
   const card=node("article","tray-flower"+(selected?" tray-selected":""));card.dataset.flower=id;
-  const preview=node("div","tray-art");preview.innerHTML=M.potSvg(p);
+  const preview=node("div","tray-art");preview.innerHTML=M.potSvg(selected?M.stemPlant(state,id):p);
   card.append(preview,node("span","tray-name",name),node("small","tray-state",selected?copy.traySelected+" · "+(i+1):ready?copy.trayReady:copy.trayGrowing));
-  if(selected){const controls=node("div","tray-arrange");for(const [action,label,disabled,aria] of [["up",copy.moveEarlierSymbol,i===0,copy.moveEarlier],["down",copy.moveLaterSymbol,i===state.bouquet.length-1,copy.moveLater],["remove",copy.removeSymbol,false,copy.removeStem]]){const b=button(label,action,id,"secondary");b.disabled=disabled;b.setAttribute("aria-label",aria+" — "+name);controls.append(b);}card.append(controls);}
+  if(selected){card.append(colorControl(id,true,state.stemColors[id]));const controls=node("div","tray-arrange");for(const [action,label,disabled,aria] of [["up",copy.moveEarlierSymbol,i===0,copy.moveEarlier],["down",copy.moveLaterSymbol,i===state.bouquet.length-1,copy.moveLater],["remove",copy.removeSymbol,false,copy.removeStem]]){const b=button(label,action,id,"secondary");b.disabled=disabled;b.setAttribute("aria-label",aria+" — "+name);controls.append(b);}card.append(controls);}
   if(!selected||state.bouquet.find(stem=>M.stemSpecies(stem)===kind)===id){const add=button(selected?copy.trayAddMore:copy.trayAdd,"add",kind,"secondary tray-add");add.disabled=!ready||state.bouquet.length>=M.MAX_STEMS;add.setAttribute("aria-label",(selected?copy.trayAddMore:copy.trayAdd)+" — "+copy.flowers[kind].name);card.append(add);}
   tray.append(card);
  }}
@@ -144,6 +146,19 @@ function render(focus){
  el("bouquetCount").textContent=state.bouquet.length?format(copy.bouquetCount,{count:state.bouquet.length,max:M.MAX_STEMS}):copy.emptyBouquet;
  el("wrap").value=state.wrap;el("ribbon").value=state.ribbon;el("greenery").checked=state.greenery;el("svg").disabled=!state.bouquet.length;el("png").disabled=pngBusy||!state.bouquet.length;
  if(focus?.id){const scope=focus.scope?el(focus.scope):root,list=[...scope.querySelectorAll("button[data-id]")],target=list.find(b=>b.dataset.id===focus.id&&b.dataset.action===focus.action&&!b.disabled)||list.find(b=>b.dataset.id===focus.id&&!b.disabled)||list.find(b=>!b.disabled);(target||(focus.scope==="flowerTray"?el("positionFlower"):null))?.focus({preventScroll:true});}
+}
+function colorControl(id,isStem,value){
+ const kind=isStem?M.stemSpecies(id):id,label=node("label","flower-color-control"),select=node("select","flower-color");
+ label.append(node("span","",copy.colorLabel));select.dataset.colorId=id;select.dataset.colorScope=isStem?"stem":"plant";select.setAttribute("aria-label",copy.colorLabel+" — "+(isStem?stemName(id):copy.flowers[kind].name));
+ for(const color of M.colorOptions(kind)){const o=node("option","",copy.colorNames[color]||color);o.value=color;select.append(o);}
+ select.value=value||"default";label.append(select);return label;
+}
+function recolor(e){
+ const target=e.target.closest("select[data-color-id]");if(!target)return;
+ const id=target.dataset.colorId,scope=target.dataset.colorScope,value=target.value;
+ if(scope==="stem")bouquetChange(()=>M.setStemColor(state,id,value));
+ else if(M.setPlantColor(state,id,value)){persist();render();}
+ const replacement=[...document.querySelectorAll("select[data-color-id]")].find(x=>x.dataset.colorId===id&&x.dataset.colorScope===scope);replacement?.focus({preventScroll:true});
 }
 function act(e){const b=e.target.closest("button[data-action]");if(!b||b.disabled)return;const {id,action}=b.dataset;let changed=false;const before=M.bouquetSnapshot(state);
  if(action==="plant")changed=M.plant(state,id);
@@ -214,12 +229,12 @@ async function start(){
  try{copy=await loadCopy();for(const id of M.species)if(!copy.flowers?.[id]||typeof copy.flowers[id].name!=="string")throw Error("Incomplete flower text");
  document.title=copy.brand;document.querySelectorAll("[data-copy]").forEach(n=>{const v=copy[n.dataset.copy];if(typeof v==="string")n.textContent=v;});
  for(const attr of ["aria-label","alt","title"]){document.querySelectorAll("[data-copy-"+attr+"]").forEach(n=>{const v=copy[n.getAttribute("data-copy-"+attr)];if(typeof v==="string")n.setAttribute(attr,v);});}
- try{state=M.normalize(JSON.parse(localStorage.getItem(KEY)||"null"));}catch{storageOK=false;}
+ try{const preview=localStorage.getItem(KEY);state=M.normalize(JSON.parse(preview===null?(localStorage.getItem(LEGACY_KEY)||"null"):preview));if(preview===null)persist();}catch{storageOK=false;}
  fillOptions("wrap",copy.wraps);fillOptions("ribbon",copy.ribbons);fillOptions("paperStyle",copy.paperStyles);fillOptions("ribbonStyle",copy.ribbonStyles);
- const hero=el("heroFlowers");hero.innerHTML=M.species.map((id,i)=>'<g transform="translate('+[54,105,139,232,270,311][i]+' '+[292,283,282,281,290,295][i]+') scale('+[.68,.58,.46,.48,.64,.72][i]+')">'+M.flowerMarkup({id,seed:M.seedFor(id),stage:4})+'</g>').join("");
- const room=el("workroomFlowers");room.innerHTML=M.species.map((id,i)=>'<g transform="translate('+[74,145,214,526,595,667][i]+' 159) scale(.66)">'+M.flowerMarkup({id,seed:M.seedFor(id),stage:4})+'</g>').join("");
+ const hero=el("heroFlowers");hero.innerHTML=M.originalSpecies.map((id,i)=>'<g transform="translate('+[54,105,139,232,270,311][i]+' '+[292,283,282,281,290,295][i]+') scale('+[.68,.58,.46,.48,.64,.72][i]+')">'+M.flowerMarkup({id,seed:M.seedFor(id),stage:4})+'</g>').join("");
+ const room=el("workroomFlowers");room.innerHTML=M.originalSpecies.map((id,i)=>'<g transform="translate('+[74,145,214,526,595,667][i]+' 159) scale(.66)">'+M.flowerMarkup({id,seed:M.seedFor(id),stage:4})+'</g>').join("");
  el("bouquetHelp").addEventListener("click",()=>{cancelDrag(true);const dialog=el("helpDialog");if(!dialog.open)dialog.showModal();});el("closeHelp").addEventListener("click",()=>el("helpDialog").close());
- el("plants").addEventListener("click",act);el("flowerTray").addEventListener("click",act);
+ el("plants").addEventListener("click",act);el("flowerTray").addEventListener("click",act);el("plants").addEventListener("change",recolor);el("flowerTray").addEventListener("change",recolor);
  for(const key of ["paperStyle","ribbonStyle","wrap","ribbon","greenery"]){const control=el(key);const preview=()=>{if(key!=="greenery"&&state.bouquet.length&&!state.wrapped&&!editMode){paperPreview=true;updatePreview();}};control.addEventListener("focus",preview);control.addEventListener("change",()=>{if(key!=="greenery"&&!state.wrapped&&!editMode)paperPreview=true;const changed=bouquetChange(()=>{state[key]=key==="greenery"?control.checked:control.value;});if(!changed)updatePreview();});}
  el("wrapBouquet").addEventListener("click",()=>{paperPreview=false;bouquetChange(()=>M.setWrapped(state,!state.wrapped),{action:"wrap"});});
  el("editPosition").addEventListener("click",()=>{if(state.wrapped||!state.bouquet.length)return;cancelDrag();paperPreview=false;editMode=!editMode;updatePreview();});
