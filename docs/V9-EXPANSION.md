@@ -1,6 +1,6 @@
 # Version 9 — Garden expansion
 
-Status: research first; implementation and production merge not approved.
+Status: V9-001 Option A approved on 2026-11-27; isolated catalog/color/four-species pilot implemented. Production merge remains NOT approved.
 Baseline: Version 8.20, 6245f712d34ed96200ab8f7ad47643395b710a79. Production branch: main. Development branch: v9-expansion.
 
 ## Owner-approved scope

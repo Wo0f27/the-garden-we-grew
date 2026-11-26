@@ -1,9 +1,10 @@
 name: Garden browser QA
 on:
   push:
-    branches: [main]
+    branches: [main, v9-expansion]
     paths:
       - '**.js'
+      - '**.cjs'
       - '**.html'
       - 'styles/**'
       - 'tests/**'
