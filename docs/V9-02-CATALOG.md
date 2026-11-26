@@ -1,0 +1,9 @@
+# V9.2 — Expanded botanical catalog
+
+Owner directed continuation after V9.0 pilot. Prior browser QA run 45855524734 completed successfully. Production main remains locked to 8.20.
+
+Added eight original SVG forms: hydrangea (rounded four-sepal cluster), ranunculus (nested cups), decorative dahlia (pointed tiers), cosmos (open rays and dissected foliage), daffodil (trumpet and strap leaves), lisianthus (layered cupped head), forget-me-not (five-lobed spray), magnolia (broad tepals and cut branch). These are stylized garden representations, not a horticultural growth simulation. Added 27 palette combinations, including defaults, to previous 31; total 58 across 18 species. No external art or code imported. Neutral new botanical descriptions, no fabricated personal messages. Existing colors/copy unchanged.
+
+Botanical morphology research references (reference only; no downloaded images): NC State Extension Plant Toolbox https://plants.ces.ncsu.edu/plants/hydrangea/ ; https://plants.ces.ncsu.edu/plants/ranunculus-asiaticus/ ; https://plants.ces.ncsu.edu/plants/dahlia/ ; https://plants.ces.ncsu.edu/plants/cosmos/ ; https://plants.ces.ncsu.edu/plants/narcissus-pseudonarcissus/ ; https://plants.ces.ncsu.edu/plants/magnolia-grandiflora/ . Lisianthus and forget-me-not drawn from general botanical knowledge; institutional verification and specimen-level visual review pending.
+
+Compatibility: 1271 exact prior-stage/palette comparisons (10 prior species, 41 stages each), 2055 assertions in V8 assertion harness, original owner copy unchanged, existing schema v2 and preview key unchanged. 12 extended-only stem SVG 165810 chars / 495 paths; not a timing benchmark. Model cap stays 12. Extended progress now 12; anniversary gate remains original six. Browser QA modified for 18 cards, 12 extended plants and a mixed 12-stem bouquet. Actual device/render screenshots and updated browser QA pending. No preview publication or production merge.

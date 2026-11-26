@@ -142,8 +142,8 @@ def journey(browser,name,width,height,mobile=False,reduce="reduce"):
         page.wait_for_timeout(750)
     expect(page.locator("#openLetter")).to_be_disabled()
     for id in SPECIES: plant(page,id)
-    expect(page.locator("#plants .plant-card")).to_have_count(10)
-    expect(page.locator("#extraProgress")).to_have_text("Extended nursery: 0 of 4 flowers in bloom")
+    expect(page.locator("#plants .plant-card")).to_have_count(18)
+    expect(page.locator("#extraProgress")).to_have_text("Extended nursery: 0 of 12 flowers in bloom")
     if reduce=="no-preference": page.wait_for_timeout(1000)
     expect(page.locator("#notice")).to_be_empty(timeout=6000)
     assert page.locator("#plants .plant-card").evaluate_all("""cards=>cards.every(card=>{const art=card.querySelector(".plant-art").getBoundingClientRect(),svg=card.querySelector(".plant-art svg").getBoundingClientRect(),name=card.querySelector("h3").getBoundingClientRect();return svg.bottom<=art.bottom+1&&svg.top>=art.top-1&&art.bottom<=name.top+1})"""), "nursery illustration overlaps heading"
@@ -344,18 +344,17 @@ def expansion_pilot(browser):
     assert saved(page)["stemColors"]=={"rose":"default","rose~2":"default"}
     expect(page.locator("#openLetter")).to_be_enabled()
     click(page,"#openGate");go(page,"gardenPath","nursery")
-    for id in ["lily","carnation","lavender","orchid"]: plant(page,id)
-    expect(page.locator("#extraProgress")).to_have_text("Extended nursery: 4 of 4 flowers in bloom")
+    for id in ["lily","carnation","lavender","orchid","hydrangea","ranunculus","dahlia","cosmos","daffodil","lisianthus","forgetmenot","magnolia"]: plant(page,id)
+    expect(page.locator("#extraProgress")).to_have_text("Extended nursery: 12 of 12 flowers in bloom")
     page.locator('#plants select[data-color-id="rose"]').select_option("red")
     assert saved(page)["stemColors"]=={"rose":"default","rose~2":"default"}
     go(page,"nursery","glassEntrance");click(page,"#glassDoor")
-    for id in ["lily","carnation","lavender","orchid"]: click(page,f'#flowerTray button[data-id="{id}"][data-action="add"]')
+    for id in ["lily","carnation","hydrangea","ranunculus","dahlia","cosmos","daffodil","lisianthus","forgetmenot","magnolia"]: click(page,f'#flowerTray button[data-id="{id}"][data-action="add"]')
     page.locator('#flowerTray select[data-color-id="rose~2"]').select_option("ivory")
     assert saved(page)["stemColors"]["rose~2"]=="ivory" and saved(page)["stemColors"]["rose"]=="default"
     click(page,"#undoBouquet");assert saved(page)["stemColors"]["rose~2"]=="default"
     click(page,"#redoBouquet");assert saved(page)["stemColors"]["rose~2"]=="ivory"
     expect(page.locator('#bouquetArt [data-flower="rose~2"] [fill="#fff4db"]').first).to_be_visible()
-    for _ in range(6): click(page,'#flowerTray button[data-id="rose"][data-action="add"]')
     assert len(saved(page)["bouquet"])==12
     click(page,"#wrapBouquet")
     stats=page.evaluate("""()=>{const svg=document.querySelector('#bouquetArt svg'),start=performance.now();for(let i=0;i<20;i++)GardenModel.bouquetSvg(JSON.parse(localStorage.getItem('the-garden-we-grew-v9-preview')),'QA');return {bytes:new TextEncoder().encode(svg.outerHTML).length,paths:svg.querySelectorAll('path').length,avgRenderMs:(performance.now()-start)/20}}""")

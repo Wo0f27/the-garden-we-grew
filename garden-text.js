@@ -57,7 +57,15 @@ window.GARDEN_TEXT = {
     lily: {name:"Lily", meaning:"Grace", message:"A graceful bloom with six spreading tepals."},
     carnation: {name:"Carnation", meaning:"Admiration", message:"Layers of gently frilled petals."},
     lavender: {name:"Lavender", meaning:"Calm", message:"Tiny flowers gathered along a fragrant-looking spike."},
-    orchid: {name:"Orchid", meaning:"Beauty", message:"A distinctive bloom with a delicate central lip."}
+    orchid: {name:"Orchid", meaning:"Beauty", message:"A distinctive bloom with a delicate central lip."},
+    hydrangea: {name:"Hydrangea", meaning:"Flower cluster", message:"A rounded cluster of delicate, overlapping florets."},
+    ranunculus: {name:"Ranunculus", meaning:"Layered bloom", message:"Fine petals nested into a compact, rounded cup."},
+    dahlia: {name:"Dahlia", meaning:"Decorative bloom", message:"Pointed petals arranged in neat, concentric tiers."},
+    cosmos: {name:"Cosmos", meaning:"Open bloom", message:"A light, airy flower with a golden center."},
+    daffodil: {name:"Daffodil", meaning:"Trumpet bloom", message:"A bright central trumpet surrounded by six spreading tepals."},
+    lisianthus: {name:"Lisianthus", meaning:"Soft bloom", message:"Gentle, layered petals with a softly ruffled edge."},
+    forgetmenot: {name:"Forget-me-not", meaning:"Small flower spray", message:"A spray of tiny five-lobed flowers with yellow centers."},
+    magnolia: {name:"Magnolia", meaning:"Flowering branch", message:"Broad, waxy-looking tepals on a cut flowering branch."}
   },
 
   // =====================================================================

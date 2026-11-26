@@ -6,14 +6,13 @@ for(const id of M.species){
  for(let i=0;i<4;i++)assert.equal(M.water(s,id),true);
  assert.equal(M.water(s,id),false);
  const mark=M.flowerMarkup(s.plants[id]);assert.equal(mark,M.flowerMarkup(s.plants[id]));
- assert.ok(M.potSvg(s.plants[id]).includes(mark));assert.equal(M.add(s,id),true);
- assert.ok(M.bouquetSvg(s,"Garden").includes(mark));
+ assert.ok(M.potSvg(s.plants[id]).includes(mark));const single=M.fresh();single.plants[id]={...s.plants[id]};assert.equal(M.add(single,id),true);assert.ok(M.bouquetSvg(single,"Garden").includes(mark));if(s.bouquet.length<M.MAX_STEMS)assert.equal(M.add(s,id),true);
 }
-assert.equal(s.bouquet.length,M.species.length);assert.equal(M.move(s,"rose",1),true);assert.equal(M.remove(s,"rose"),true);assert.equal(M.add(s,"rose"),true);
+assert.equal(s.bouquet.length,M.MAX_STEMS);assert.equal(M.move(s,"rose",1),true);assert.equal(M.remove(s,"rose"),true);assert.equal(M.add(s,"rose"),true);
 assert.deepEqual(M.normalize(JSON.parse(JSON.stringify(s))),s);
 assert.ok(M.bouquetSvg(s,"<Test &>").includes("&lt;Test &amp;&gt;"));
 assert.equal(M.normalize({...s,plants:{rose:{stage:3.5}}}).plants.rose,undefined);
-console.log("Garden model: ten species, 410 visual stages, deterministic shared geometry, stage rules, saved state and SVG escaping PASS.");
+console.log("Garden model: eighteen species, 738 visual stages, deterministic shared geometry, stage rules, saved state and SVG escaping PASS.");
 
 const legacy={version:1,plants:s.plants,bouquet:s.bouquet.slice(),wrap:"blush",ribbon:"gold",greenery:false};
 const migrated=M.normalize(legacy);assert.equal(migrated.wrapped,true);assert.equal(migrated.paperStyle,"plain");assert.equal(migrated.ribbonStyle,"bow");assert.deepEqual(migrated.bouquet,legacy.bouquet);
@@ -61,12 +60,15 @@ console.log("Prototype 07 position bounds, exact head inverse, migration, export
 {
  const legacy={version:1,plants:Object.fromEntries(M.originalSpecies.map(id=>[id,{stage:4}])),bouquet:["rose","rose~2","tulip"],placements:{"rose~2":{angle:8,scale:1.32}},wrap:"blush",wrapped:true};
  const s=M.normalize(legacy);assert.equal(s.version,2);assert.deepEqual(s.bouquet,legacy.bouquet);assert.deepEqual(s.placements,legacy.placements);assert.equal(s.wrapped,true);
- assert.equal(M.originalSpecies.length,6);assert.equal(M.extendedSpecies.length,4);assert.equal(M.species.length,10);assert.equal(M.stemSpecies("constructor"),null);assert.equal(M.stemSpecies("orchid~12"),"orchid");
+ assert.equal(M.originalSpecies.length,6);assert.equal(M.extendedSpecies.length,12);assert.equal(M.species.length,18);assert.equal(M.stemSpecies("constructor"),null);assert.equal(M.stemSpecies("orchid~12"),"orchid");
  for(const id of M.originalSpecies){assert.equal(s.plants[id].color,"default");}
  assert.equal(M.setPlantColor(s,"rose","red"),true);assert.equal(M.stemPlant(s,"rose").color,"default");assert.equal(M.setStemColor(s,"rose~2","ivory"),true);assert.equal(M.stemPlant(s,"rose~2").color,"ivory");assert.ok(M.bouquetSvg(s,"QA").includes("#fff4db"));assert.equal(M.setStemColor(s,"rose","invalid"),false);assert.equal(M.add(s,"rose"),true);assert.equal(s.stemColors["rose~3"],"red");
  const snap=M.bouquetSnapshot(s);M.setStemColor(s,"rose~2","yellow");M.restoreBouquet(s,snap);assert.equal(s.stemColors["rose~2"],"ivory");assert.equal(s.plants.rose.color,"red");
- for(const id of M.extendedSpecies){assert.equal(M.plant(s,id),true);for(let i=0;i<4;i++)M.water(s,id);assert.equal(M.add(s,id),true);}
+ for(const id of M.extendedSpecies){assert.equal(M.plant(s,id),true);for(let i=0;i<4;i++)M.water(s,id);if(s.bouquet.length<M.MAX_STEMS)assert.equal(M.add(s,id),true);else assert.equal(M.add(s,id),false); }
  for(const id of M.species){const p=s.plants[id];for(const color of M.colorOptions(id)){const markup=M.flowerMarkup({...p,color});assert.ok(markup.length>0&&!/NaN|Infinity|undefined/.test(markup));assert.equal(markup,M.flowerMarkup({...p,color}));if(color!=="default")assert.notEqual(markup,M.flowerMarkup({...p,color:"default"}));}}
  assert.deepEqual(M.normalize(JSON.parse(JSON.stringify(s))),s);const invalid=M.normalize({...s,stemColors:{rose:"fake",unknown:"red"},plants:{...s.plants,rose:{...s.plants.rose,color:"fake"}}});assert.equal(invalid.stemColors.rose,"default");assert.equal(invalid.plants.rose.color,"default");assert.equal(invalid.stemColors.unknown,undefined);
  console.log("V9 catalog, palettes, legacy save, independent stems, history, and invalid colors PASS.");
 }
+
+// Full extended-only bouquet, all 12 new species, no anniversary flowers required for arranging.
+{const s=M.fresh();for(const id of M.extendedSpecies){M.plant(s,id);for(let i=0;i<4;i++)M.water(s,id);assert.equal(M.add(s,id),true);assert.equal(M.setStemColor(s,id,M.colorOptions(id)[1]),true);}assert.equal(s.bouquet.length,12);M.setWrapped(s,true);const svg=M.bouquetSvg(s,"QA");assert.equal((svg.match(/data-flower=/g)||[]).length,12);assert.ok(!/NaN|Infinity|undefined/.test(svg));assert.deepEqual(M.normalize(JSON.parse(JSON.stringify(s))),s);console.log("Full extended catalog mixed bouquet PASS.");}

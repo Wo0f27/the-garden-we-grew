@@ -1,12 +1,12 @@
 /* Dependency-free garden model; botanical outlines adapted from BLOOM° (MIT). */
 (function(root){
 "use strict";
-const originalSpecies=Object.freeze(["rose","peony","tulip","daisy","sunflower","gypsophila"]),extendedSpecies=Object.freeze(["lily","carnation","lavender","orchid"]),species=Object.freeze([...originalSpecies,...extendedSpecies]),MAX_STEMS=12;
+const originalSpecies=Object.freeze(["rose","peony","tulip","daisy","sunflower","gypsophila"]),extendedSpecies=Object.freeze(["lily","carnation","lavender","orchid","hydrangea","ranunculus","dahlia","cosmos","daffodil","lisianthus","forgetmenot","magnolia"]),species=Object.freeze([...originalSpecies,...extendedSpecies]),MAX_STEMS=12;
 function stemSpecies(id){if(typeof id!=="string")return null;const match=/^([a-z]+)(?:~([2-9]|1[0-2]))?$/.exec(id);return match&&species.includes(match[1])?match[1]:null;}
 function stemPlant(s,id){const kind=stemSpecies(id),plant=s.plants[kind];return plant?{...plant,color:validColor(kind,s.stemColors?.[id]),seed:id===kind?plant.seed:seedFor(id)}:null;}
 function stemCount(s,kind){return s.bouquet.filter(id=>stemSpecies(id)===kind).length;}
 function nextStem(s,kind){if(s.bouquet.length>=MAX_STEMS||s.plants[kind]?.stage!==4)return null;for(let n=1;n<=MAX_STEMS;n++){const id=n===1?kind:kind+"~"+n;if(!s.bouquet.includes(id))return id;}return null;}
-const colors={rose:["#d998a5","#b7657b","#f0bdc4"],peony:["#e4aeb9","#c48198","#f7d0d7"],tulip:["#d88c9c","#a95876","#f3b5bc"],daisy:["#fffdf1","#d8d6bc","#fffef7"],sunflower:["#e5bd50","#c98e32","#f6d780"],gypsophila:["#fff9e9","#ddcfbc","#ffffff"],lily:["#e6a0b5","#b95d81","#ffe8ef"],carnation:["#e7a4b4","#b86483","#f9d2da"],lavender:["#a99acb","#756499","#d8cdea"],orchid:["#cb91c9","#995ba0","#f3d2ec"]};
+const colors={rose:["#d998a5","#b7657b","#f0bdc4"],peony:["#e4aeb9","#c48198","#f7d0d7"],tulip:["#d88c9c","#a95876","#f3b5bc"],daisy:["#fffdf1","#d8d6bc","#fffef7"],sunflower:["#e5bd50","#c98e32","#f6d780"],gypsophila:["#fff9e9","#ddcfbc","#ffffff"],lily:["#e6a0b5","#b95d81","#ffe8ef"],carnation:["#e7a4b4","#b86483","#f9d2da"],lavender:["#a99acb","#756499","#d8cdea"],orchid:["#cb91c9","#995ba0","#f3d2ec"],hydrangea:["#93aacd","#6e84af","#c8d7ef"],ranunculus:["#e9b299","#bc796e","#ffe2c8"],dahlia:["#d88fae","#a75a85","#f4c5db"],cosmos:["#e9a1bb","#b96a91","#f9d3e3"],daffodil:["#f2d16b","#c99735","#fff0ad"],lisianthus:["#c6b3dc","#967ab3","#f1e5f8"],forgetmenot:["#8aafd8","#597fae","#c8e1f4"],magnolia:["#f4e8da","#c2a49d","#fffaf0"]};
 // Original palettes remain byte-identical; all new palettes and geometry authored locally.
 const variants={
  rose:{red:["#c95161","#8e273c","#f1848a"],ivory:["#fff4db","#d6bb97","#fffdf3"],yellow:["#e9c45e","#bf913c","#fff0a6"]},
@@ -18,7 +18,15 @@ const variants={
  lily:{white:["#fff7e7","#cfbfab","#fffef8"],orange:["#ed9a57","#bc603a","#ffd7a0"]},
  carnation:{red:["#d35c70","#963b51","#fa9fac"],white:["#fff6e9","#d5c6b4","#fffef6"]},
  lavender:{blue:["#8c9fce","#566caa","#c9d6f1"],pink:["#d9a7c0","#a777a0","#f5d7e8"]},
- orchid:{white:["#fff9ee","#d6b9cb","#fffdf9"],purple:["#a67abb","#75458e","#d8b4e3"]}
+ orchid:{white:["#fff9ee","#d6b9cb","#fffdf9"],purple:["#a67abb","#75458e","#d8b4e3"]},
+ hydrangea:{pink:["#d8a4bd","#ae7496","#f5d0e2"],white:["#f4f3e0","#bfc8ae","#fffff6"],purple:["#a997c6","#76639e","#dcd1eb"]},
+ ranunculus:{white:["#fff6e4","#d4bea5","#fffdf4"],yellow:["#edc660","#bf943d","#fff0a5"],red:["#c95b6b","#963950","#f5a1a5"]},
+ dahlia:{coral:["#e9a089","#bd665c","#ffd2b6"],purple:["#af8ac6","#78558f","#dfc7e9"],white:["#fff5e6","#d1bfb0","#fffdf7"]},
+ cosmos:{white:["#fff8e8","#d9c7bd","#fffef8"],purple:["#b67aaf","#814d86","#e9bce0"]},
+ daffodil:{white:["#fff8e5","#d5b66c","#fffdf5"],orange:["#f4ce77","#ce7538","#fff0bb"]},
+ lisianthus:{white:["#fff8ed","#c9bdb4","#fffdf8"],pink:["#e4a4bb","#ad6a92","#f9d5e2"]},
+ forgetmenot:{pink:["#e6acc5","#bd7ca2","#fbd9e7"],white:["#fff8eb","#d6cfbf","#ffffff"]},
+ magnolia:{pink:["#e5aec4","#ac7295","#fae0e9"],purple:["#ae80b4","#7c4b83","#dec3e2"]}
 };
 function validColor(kind,value){return species.includes(kind)&&typeof value==="string"&&Object.prototype.hasOwnProperty.call(variants[kind],value)?value:"default";}
 function palette(kind,value){return validColor(kind,value)==="default"?colors[kind]:variants[kind][value];}
@@ -174,6 +182,32 @@ function bloomShape(id,seed,color="default"){
   p+=circle(0,-32,2.6,light);
  }else if(id==="orchid"){
   p='<path d="M0 2C-8 -8 -19 -26 -6 -34C7 -42 13 -26 3 -5C14 -24 37 -25 35 -7C34 9 17 12 5 5C21 17 17 32 3 23C-9 34 -23 18 -7 6C-22 15 -39 5 -35 -10C-31 -26 -12 -22 0 2Z" fill="'+dark+'" stroke="'+dark+'" stroke-width=".7"/><path d="M0 -1C-12 -25 -36 -29 -37 -10C-39 7 -18 14 0 3C18 14 39 7 37 -10C36 -29 12 -25 0 -1Z" fill="'+mid+'" stroke="'+dark+'" stroke-width=".6"/><path d="M0 2C-6 -9 -13 -3 -10 6C-23 14 -12 23 0 17C12 23 23 14 10 6C13 -3 6 -9 0 2Z" fill="'+light+'" stroke="'+dark+'" stroke-width="1"/><path d="M-5 6Q0 15 5 6L3 14Q0 19 -3 14Z" fill="'+dark+'"/>'+circle(0,1,3.1,"#efd48e");
+ }else if(id==="hydrangea"){
+  // Overlapping four-sepal florets on a rounded cluster, bounded at 19.
+  const spots=[[0,-24],[-13,-20],[13,-20],[-23,-9],[0,-12],[23,-9],[-28,5],[-14,2],[14,2],[28,5],[-22,16],[-8,15],[8,15],[22,16],[-11,27],[11,27],[0,2],[-15,-8],[15,-8]];
+  for(const [xx,yy] of spots){const x=xx+(random()-.5)*2,y=yy+(random()-.5)*2;p+='<g transform="translate('+num(x)+' '+num(y)+') rotate('+num(random()*80)+')">';for(let k=0;k<4;k++)p+='<ellipse transform="rotate('+(k*90)+')" cy="-4" rx="4.8" ry="6" fill="'+(k%2?mid:light)+'" stroke="'+dark+'" stroke-width=".65"/>';p+=circle(0,0,2.2,dark)+'</g>';}
+ }else if(id==="ranunculus"){
+  // Concentric cup-shaped layers, compact center; intentionally distinct from rose.
+  for(const [n,len,wid,base,offset,fill] of [[12,15,9,16,0,dark],[11,14,8,12,15,mid],[10,12,7.5,9,4,light],[9,10,6,6,19,mid],[7,8,4.8,3,7,light],[6,5,3,1,23,mid]])p+=petals(n,len,wid,fill,{base,offset,fullAt:.8,ruffle:.025,curl:1});
+  p+=circle(0,0,2.2,"#b7a76d");
+ }else if(id==="dahlia"){
+  // Decorative ball-dahlia silhouette: pointed, folded rays in staggered tiers.
+  for(const [n,len,wid,base,offset,fill] of [[13,21,5.5,10,0,dark],[12,20,5.2,7,14,mid],[10,16,4.5,4,2,light],[8,11,3.6,2,20,mid],[6,7,2.4,0,0,light]])p+=petals(n,len,wid,fill,{base,offset,tip:"point",fullAt:.46,curl:1.1,ruffle:.02});
+  p+=circle(0,0,2.4,dark);
+ }else if(id==="cosmos"){
+  p=petals(8,30,10,mid,{base:3,offset:5,tip:"notch",fullAt:.75,ruffle:.06})+circle(0,0,6.4,"#ad7937");
+  for(let k=0;k<13;k++){const a=k*2.399963,r=Math.sqrt((k+.5)/13)*5;p+=circle(Math.cos(a)*r,Math.sin(a)*r,1.35,"#efd080");}
+ }else if(id==="daffodil"){
+  p=petals(6,30,10,mid,{offset:30,tip:"point",fullAt:.56,ruffle:.025});
+  p+='<path d="M-9 -6Q-15 -3 -14 7Q-9 16 4 15Q17 15 17 4Q15 -7 5 -8Z" fill="'+dark+'" stroke="'+dark+'" stroke-width="1"/><path d="M-10 -4Q-17 1 -11 9Q-6 14 1 11Q6 15 13 9Q21 2 13 -4Q8 -9 1 -6Q-6 -10 -10 -4Z" fill="'+light+'" stroke="'+dark+'" stroke-width="1.1"/><ellipse cx="2" cy="2" rx="8" ry="5" fill="'+dark+'"/><ellipse cx="2" cy="1" rx="3" ry="2" fill="#e7b45a"/>';
+ }else if(id==="lisianthus"){
+  p=petals(5,30,13,dark,{base:4,offset:0,fullAt:.73,ruffle:.08})+petals(5,26,12,mid,{base:2,offset:36,fullAt:.76,ruffle:.13})+petals(5,18,9,light,{offset:10,fullAt:.71,ruffle:.11})+circle(0,0,4.5,"#b7bc82")+circle(1,-1,2.1,dark);
+ }else if(id==="forgetmenot"){
+  const spots=[[-17,-18],[2,-25],[20,-12],[-25,1],[-7,-3],[12,6],[-12,19],[22,19]];
+  for(const [x,y] of spots){p+='<path d="M0 24Q'+num(x*.5)+' 3 '+x+' '+y+'" stroke="#6c906b" fill="none" stroke-width="1"/><g transform="translate('+x+' '+y+')">';for(let k=0;k<5;k++)p+='<ellipse cy="-4.7" rx="4.2" ry="5" transform="rotate('+(k*72)+')" fill="'+(k%2?mid:light)+'" stroke="'+dark+'" stroke-width=".55"/>';p+=circle(0,0,2.6,"#f2ce65")+circle(0,0,.9,"#a88345")+'</g>';}
+ }else if(id==="magnolia"){
+  p=petals(3,34,12,dark,{offset:0,fullAt:.59,ruffle:.015,curl:2})+petals(3,36,14,mid,{offset:60,fullAt:.64,ruffle:.015,curl:-1})+petals(3,26,10,light,{offset:25,fullAt:.66,ruffle:.01});
+  p+='<ellipse cy="-1" rx="5" ry="9" fill="#b9aa72"/>';for(let k=0;k<9;k++)p+=circle((k%3-1)*2.5,-6+Math.floor(k/3)*4,1.35,"#d5bc82");
  }else{
   for(let i=0;i<10;i++){const a=i*2.399963,rr=10+random()*19,cx=Math.cos(a)*rr,cy=Math.sin(a)*rr; p+='<path d="M0 12 Q'+num(cx*.45)+' '+num(cy*.4)+' '+num(cx)+' '+num(cy)+'" stroke="#77916b" fill="none" stroke-width=".8"/>';for(let k=0;k<5;k++){const ang=k*Math.PI*2/5;p+=circle(cx+Math.cos(ang)*2.6,cy+Math.sin(ang)*2.6,2.8,k%2?mid:light,.96);}p+=circle(cx,cy,1.5,"#c6ad76");}
  }
@@ -191,6 +225,13 @@ function flowerMarkup(p){
  function growingLeaf(lx,ly,side,size,amount){if(amount<=0)return "";return '<g transform="translate('+num(lx)+' '+num(ly)+') scale('+num(amount)+')">'+leaf(0,0,side,size)+'</g>';}
  if(id==="orchid"){
   s+=growingLeaf(0,-height*.07,-1,27,Math.min(1,stage*.58))+growingLeaf(0,-height*.12,1,27,clamp(stage-1,0,1));
+ }else if(id==="magnolia"||id==="hydrangea"){
+  // Cut flowering branch with broad leaves; scaled to the shared stem anchor.
+  s+=growingLeaf(0,-height*.25,-1,28,Math.min(1,stage*.58))+growingLeaf(x*.3,-height*.5,1,27,clamp(stage-1,0,1))+growingLeaf(x*.6,-height*.72,-1,19,clamp(stage-1.45,0,1));
+ }else if(id==="cosmos"){
+  for(let k=0;k<3;k++){const a=clamp(stage-k*.55,0,1),yy=-height*(.25+.2*k),xx=x*(.2+.18*k);if(a>0)s+='<g transform="translate('+num(xx)+' '+num(yy)+') scale('+num(a)+')" stroke="#6c906b" stroke-width="1" stroke-linecap="round" fill="none"><path d="M0 0L-22 -20M0 0L22 -20M-7 -6L-18 -8M-12 -11L-14 -21M7 -6L18 -8M12 -11L14 -21"/></g>';}
+ }else if(id==="daffodil"){
+  for(let k=0;k<3;k++){const a=clamp(stage-k*.4,0,1),side=k%2?1:-1;if(a>0)s+='<g transform="scale('+num(a)+')"><path d="M0 0Q'+side*23+' -35 '+side*(12+k*6)+' -82Q'+side*5+' -43 0 0Z" fill="#75956e" stroke="#53764f" stroke-width=".7"/></g>';}
  }else if(id==="lavender"||id==="carnation"||id==="lily"){
   for(let i=0;i<4;i++){const a=clamp(stage-i*.55,0,1);if(a>0){const yy=-height*(.15+i*.16),xx=x*(.12+i*.13),side=i%2?1:-1;s+='<g transform="translate('+num(xx)+' '+num(yy)+') scale('+num(a)+')"><path d="M0 0Q'+side*9+' -21 '+side*(id==="lily"?24:13)+' -26Q'+side*12+' -6 0 0Z" fill="#73916f" stroke="#547553" stroke-width=".55"/></g>';}}
  }else{
